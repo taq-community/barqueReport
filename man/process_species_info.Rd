@@ -4,10 +4,10 @@
 \alias{process_species_info}
 \title{Process Species Information from Multiple Sources}
 \usage{
-process_species_info(single_hits)
+process_species_info(species_list)
 }
 \arguments{
-\item{single_hits}{Data frame containing species data}
+\item{species_list}{Data frame containing species data}
 }
 \value{
 Data frame with enhanced species information including common names,
@@ -18,6 +18,6 @@ Combines species information from NatureServe, ITIS, GBIF, and Catalogue of Life
 }
 \examples{
 \dontrun{
-enhanced_species <- process_species_info(single_hits)
+enhanced_species <- process_species_info(species_list)
 }
 }

@@ -70,3 +70,38 @@ calculate_summary_stats <- function(single_hits, multi_hits, samples_ids) {
   
   return(stats)
 }
+
+#' Load and Process Sequence Dropout Data
+#'
+#' Loads the sequence dropout data from barque output and processes it for plotting
+#' by filtering samples and reshaping the data into long format.
+#'
+#' @param barque_output_folder Path to the barque output folder
+#' @param samples_ids Vector of sample IDs to include in the analysis
+#'
+#' @return A data frame in long format ready for plotting with columns:
+#'   Sample, step, sequences
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' dropout_data <- load_dropout_data("/path/to/barque/output", c("ST1", "ST2", "ST3"))
+#' }
+load_dropout_data <- function(barque_output_folder, samples_ids) {
+  # Read the sequence dropout data
+  dropout_data <- readr::read_csv(file.path(barque_output_folder, "12_results", "sequence_dropout.csv"))
+  
+  # Filter data to keep only sample_ids from params
+  dropout_filtered <- dropout_data |>
+    dplyr::filter(Sample %in% samples_ids)
+  
+  # Reshape data for plotting
+  dropout_long <- dropout_filtered |>
+    tidyr::pivot_longer(
+      cols = -Sample,
+      names_to = "step",
+      values_to = "sequences"
+    )
+  
+  return(dropout_long)
+}
