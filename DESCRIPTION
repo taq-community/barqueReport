@@ -1,0 +1,34 @@
+Package: barqueReport
+Title: Tools for Metabarcoding Report Generation
+Version: 0.0.0.9000
+Authors@R: 
+    person("Steve", "Vissault", "", "steve.vissault@inrs.ca", role = c("aut", "cre"))
+Description: A comprehensive toolkit for processing and reporting metabarcoding data 
+    from the barque bioinformatics pipeline. This package streamlines the analysis 
+    workflow by providing functions to load and process species tables, fetch 
+    taxonomic and conservation information from multiple databases (NatureServe, 
+    ITIS, GBIF, Catalogue of Life), generate summary statistics, and create 
+    interactive visualizations and tables for publication-ready reports.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.3
+Imports:
+    dplyr,
+    readr,
+    tidyr,
+    ggplot2,
+    ggiraph,
+    reactable,
+    htmltools,
+    stringr,
+    purrr,
+    MetBrewer,
+    natserv,
+    taxize
+Suggests: 
+    knitr,
+    rmarkdown,
+    bslib,
+    bsicons,
+    reactablefmtr
