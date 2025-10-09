@@ -1,0 +1,18 @@
+<urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
+<url><loc>/404.html</loc></url>
+<url><loc>/LICENSE-text.html</loc></url>
+<url><loc>/LICENSE.html</loc></url>
+<url><loc>/authors.html</loc></url>
+<url><loc>/index.html</loc></url>
+<url><loc>/reference/barque_summary_stats.html</loc></url>
+<url><loc>/reference/convert_province_codes.html</loc></url>
+<url><loc>/reference/fetch_natserv_info.html</loc></url>
+<url><loc>/reference/generate_metabarcoding_report.html</loc></url>
+<url><loc>/reference/illumina_summary_stats.html</loc></url>
+<url><loc>/reference/index.html</loc></url>
+<url><loc>/reference/load_barque_data.html</loc></url>
+<url><loc>/reference/load_dropout_data.html</loc></url>
+<url><loc>/reference/process_species_info.html</loc></url>
+<url><loc>/reference/province_codes.html</loc></url>
+</urlset>
+
