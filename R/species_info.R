@@ -46,7 +46,8 @@ fetch_natserv_info <- function(sp) {
 #' enhanced_species <- process_species_info(species_list)
 #' }
 process_species_info <- function(species_list) {
-  # Fetch NatureServ information
+
+  # Fetch NatureServ informations
   natserv_infos <- species_list |>
     purrr::map_df(.f = fetch_natserv_info) |>
     suppressWarnings() |>
@@ -64,18 +65,18 @@ process_species_info <- function(species_list) {
     dplyr::mutate(commonName = stringr::str_to_sentence(commonName)) |>
     tidyr::pivot_wider(names_from = "language", values_from = "commonName", values_fn = \(x) paste(x, collapse = "; "))
   
-  # Get Catalogue of Life information
+  # Get Catalogue of Life informations
   col_infos <- taxize::gna_verifier(names = species_list, data_sources = 1) |>
     dplyr::mutate(col_link = paste0("https://www.catalogueoflife.org/data/taxon/", currentRecordId)) |>
     dplyr::select(species = submittedName, col_link)
   
-  # Get GBIF information
+  # Get GBIF informations
   gbif_infos <- data.frame(
     species = species_list, 
     gbif_url = taxize::get_gbifid(species_list, messages = FALSE) |> attr("uri")
   )
   
-  # Combine all information
+  # Combine all informations
   final_species_df <- data.frame(species = species_list) |>
     dplyr::left_join(itis_common_names, by = "species") |>
     dplyr::left_join(natserv_infos, by = "species") |>

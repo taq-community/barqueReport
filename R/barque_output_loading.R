@@ -51,9 +51,9 @@ load_barque_data <- function(barque_output_folder, samples_ids) {
 #'
 #' @examples
 #' \dontrun{
-#' stats <- calculate_summary_stats(single_hits, multi_hits, samples_ids)
+#' stats <- barque_summary_stats(single_hits, multi_hits, samples_ids)
 #' }
-calculate_summary_stats <- function(single_hits, multi_hits, samples_ids) {
+barque_summary_stats <- function(single_hits, multi_hits, samples_ids) {
   stats <- list(
     samples = length(samples_ids),
     single_species = nrow(single_hits),

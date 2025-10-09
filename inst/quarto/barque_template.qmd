@@ -1,0 +1,372 @@
+---
+title: "🧬 Rapport de métabarcoding"
+subtitle: "Nemaska Lithium"
+author: "Julie Couillard, Tuan Anh To & Steve Vissault"
+date: today
+params:
+  barque_output_folder: "/home/steve/Documents/INRS/Bioinfo/metabarcoding/Nemaska-Lithium/archive-nemaska-lithium-results-20251002_170026"
+  illumina_quality_file: "/home/steve/Documents/INRS/Alliance-shared/Metabarcoding/Nemaska/Nemaska-fastq/fastq/Reports/Quality_Metrics.csv"
+  samples_ids: ["BLNEM", "Plage", "ST1", "ST10", "ST11", "ST12", "ST13", "ST2", "ST3", "ST4", "ST5", "ST6", "ST7", "ST8", "ST9", "qPCRctrl"]
+  blank_lab: "BLNEM"
+  blank_field: "qPCRctrl"
+format: 
+  html:
+    toc: true
+    toc-location: left
+    theme: cosmo
+    code-fold: true
+    code-tools: true
+    embed-resources: true
+    link-external-newwindow: true
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+
+```{r load-data}
+# Load and process barque data using package function
+barque_data <- barqueReport::load_barque_data(params$barque_output_folder, params$samples_ids)
+single_hits <- barque_data$single_hits
+multi_hits <- barque_data$multi_hits
+```
+
+::: {.panel-tabset}
+
+## Résumé
+
+### Illumina
+
+```{r compute-illumina-stats}
+illumina_stats <- barqueReport::illumina_summary_stats(path = params$illumina_quality_file, sample_ids = params$samples_ids)
+
+bslib::layout_columns(
+    col_widths = c(6, 6),
+    bslib::card(
+        bslib::card_body(
+            bslib::value_box(
+                title = toupper("% Q30"),
+                value = paste(round(mean(illumina_stats$mu_q30), 2) * 100, "%"),
+                showcase = bsicons::bs_icon("shield-check"),
+                htmltools::p("Représente le pourcentage de bases séquencées ayant un score de qualité Phred d'au moins 30)")
+            )
+        )
+    ),
+    bslib::card(
+        bslib::card_body(
+            bslib::value_box(
+                title = toupper("Mean Quality Score (PF)"),
+                value = round(mean(illumina_stats$mu_pf),2),
+                showcase = bsicons::bs_icon("speedometer2"),
+                htmltools::p("Score de qualité Phred moyen qui ont passé les filtres de qualité (PF - Passing Filter)")
+            )
+        )
+    )
+)
+```
+
+
+### Pipeline BARQUE
+
+
+```{r compute-barque-stats}
+#| output: asis
+# Calculate comprehensive stats using package function
+stats <- barqueReport::barque_summary_stats(single_hits, multi_hits, params$samples_ids)
+
+# Row 1
+bslib::layout_columns(
+    col_widths = c(6, 6),
+    bslib::card(
+        bslib::card_body(
+            bslib::value_box(
+                title = toupper("Échantillons analysés"),
+                value = stats$samples,
+                showcase = bsicons::bs_icon("grid-3x3-gap"),
+                htmltools::p("Nombre total d'échantillons dans l'analyse")
+            )
+        )
+    ),
+    bslib::card(
+        bslib::card_body(
+            bslib::value_box(
+                title = toupper("Espèces détectées"),
+                value = stats$single_species,
+                showcase = bsicons::bs_icon("bug"),
+                htmltools::p("Espèces uniques identifiées")
+            )
+        )
+    )
+)
+
+# Row 2
+bslib::layout_columns(
+    col_widths = c(6, 6),
+    bslib::card(
+        bslib::card_body(
+            bslib::value_box(
+                title = toupper("Groupes ambigus"),
+                value = stats$multi_groups,
+                showcase = bsicons::bs_icon("question-circle"),
+                htmltools::p("Assignations multi-espèces")
+            )
+        )
+    ),
+    bslib::card(
+        bslib::card_body(
+            bslib::value_box(
+                title = toupper("Lectures totales"),
+                value = format(stats$total_reads, big.mark = " "),
+                showcase = bsicons::bs_icon("bar-chart-line"),
+                htmltools::p("Lectures de séquences combinées")
+            )
+        )
+    )
+)
+
+# Row 3
+bslib::layout_columns(
+    col_widths = c(6, 6),
+    bslib::card(
+        bslib::card_body(
+            bslib::value_box(
+                title = toupper("Lectures espèce unique"),
+                value = htmltools::HTML(paste0(
+                    format(stats$single_reads, big.mark = " "), "<br>",
+                    "<small class='text-muted'>", stats$single_pct, "% du total</small>"
+                )),
+                showcase = bsicons::bs_icon("check-circle-fill")
+            )
+        )
+    ),
+    bslib::card(
+        bslib::card_body(
+            bslib::value_box(
+                title = toupper("Lectures multi-espèces"),
+                value = htmltools::HTML(paste0(
+                    format(stats$multi_reads, big.mark = " "), "<br>",
+                    "<small class='text-muted'>", stats$multi_pct, "% du total</small>"
+                )),
+                showcase = bsicons::bs_icon("diagram-3-fill")
+            )
+        )
+    )
+)
+```
+
+
+## Configuration du pipeline
+
+```{r}
+#| label: config
+```
+
+## Lectures écartées
+
+Nombre de lectures écartés lors du post-traitement des données de séquencage par le pipeline barque.
+
+```{r reads-filtered-out}
+#| column: body-outset
+
+# Load and process sequence dropout data using package function
+dropout_long <- barqueReport::load_dropout_data(params$barque_output_folder, params$samples_ids) |>
+    dplyr::mutate(
+        step_label = dplyr::case_when(
+            step == "04_data" ~ "Nombre de séquences brutes",
+            step == "05_trimmed" ~ "Filtration des séquences",
+            step == "06_merged" ~ "Fusion des séquences",
+            step == "07_split_amplicons" ~ "Classifications des séquences",
+            step == "08_chimeras" ~ "Retrait des chimères",
+            step == "12_results" ~ "Nombre de séquences finales",
+            TRUE ~ step
+        ),
+        step_order = dplyr::case_when(
+            step == "04_data" ~ 1,
+            step == "05_trimmed" ~ 2,
+            step == "06_merged" ~ 3,
+            step == "07_split_amplicons" ~ 4,
+            step == "08_chimeras" ~ 5,
+            step == "12_results" ~ 6,
+            TRUE ~ 0
+        ),
+        tooltip = paste0("Sample: ", Sample, "\nStep: ", step_label, "\nSequences: ", format(sequences, big.mark = ","))
+    ) |>
+    dplyr::arrange(Sample, step_order)
+
+# Create the plot
+p <- ggplot2::ggplot(dropout_long, ggplot2::aes(x = stats::reorder(step_label, step_order), y = sequences, group = Sample, color = Sample)) +
+    ggiraph::geom_line_interactive(
+        ggplot2::aes(tooltip = tooltip, data_id = Sample),
+        size = 1,
+        alpha = 0.8
+    ) +
+    ggiraph::geom_point_interactive(
+        ggplot2::aes(tooltip = tooltip, data_id = Sample),
+        size = 3,
+        alpha = 0.8
+    ) +
+    ggplot2::scale_colour_manual(values = grDevices::colorRampPalette(MetBrewer::met.brewer("Signac", 13))(16)) +
+    ggplot2::labs(
+        x = "",
+        y = "Nombre de séquences",
+        color = "Échantillons"
+    ) +
+    ggplot2::theme_minimal() +
+    ggplot2::theme(
+        text = ggplot2::element_text(size = 15),
+        axis.text.x = ggplot2::element_text(angle = 45, hjust = 1),
+        legend.position = "right"
+    ) +
+    ggplot2::guides(color = ggplot2::guide_legend(override.aes = list(size = 3)))
+
+# Create interactive plot
+ggiraph::girafe(
+    ggobj = p,
+    width_svg = 12,
+    height_svg = 8,
+    options = list(
+        ggiraph::opts_hover_inv(css = "opacity:0.3;"),
+        ggiraph::opts_tooltip(css = "background-color:white;border:1px solid black;border-radius:3px;padding:5px;")
+    )
+)
+```
+
+:::
+
+```{r}
+#| label: get-species-status
+#| cache: true
+
+# Process species information using package function
+final_species_df <- barqueReport::process_species_info(single_hits$Species)
+```
+
+## Espèces detectées
+
+Visualisation en carte de chaleur du nombre de lectures par espèce à travers les échantillons.
+
+```{r}
+#| label: single-hits-table
+#| column: screen-inset-shaded
+# Enhanced single hits table with better styling
+single_hits |> 
+    dplyr::left_join(
+        dplyr::select(
+            final_species_df, 
+            species,
+            species_formatted
+        ), by = c("Species" = "species")) |>
+    dplyr::select(-Species) |>
+    dplyr::relocate(species_formatted, .after = "Group") |>
+    reactable::reactable(
+        # Enhanced default styling
+        defaultColDef = reactable::colDef(
+            sortable = TRUE,
+            align = "center",
+            minWidth = 80,
+            style = function(value) {
+                if (!is.na(value) && is.numeric(value)) {
+                    if (value > 100) {
+                        list(backgroundColor = "#0067ac", color = "white")
+                    } else if (value > 10) {
+                        list(backgroundColor = "#90CAF9", color = "black")
+                    } else {
+                        list()
+                    }
+                } else {
+                    list()
+                }
+            }
+        ),
+        # Custom column definitions
+        columns = list(
+            species_formatted = reactable::colDef(
+                name = "Species",
+                searchable = TRUE,
+                minWidth = 300,
+                align = "left",
+                html = TRUE
+            ),
+            Group = reactable::colDef(
+                searchable = TRUE,
+                minWidth = 120,
+                align = "left",
+                style = list(
+                    backgroundColor = "#f8f9fa",
+                    fontStyle = "italic"
+                )
+            )
+        ),
+        # Table options
+        searchable = TRUE,
+        defaultPageSize = 50,
+        showPageSizeOptions = TRUE,
+        pageSizeOptions = c(25, 50, 100, 200),
+        striped = TRUE,
+        bordered = TRUE,
+        compact = TRUE,
+        theme = reactable::reactableTheme(
+            # Vertically center cells
+            cellStyle = list(display = "flex", flexDirection = "column", justifyContent = "center")
+        )
+    )
+```
+
+## Présence des espèces dans chaque province 
+
+Pour chaque espèce, nous avons interrogé la base de données [NatureServe Canada](https://www.natureserve.org/) pour savoir si elle a déjà été observé dans chacune des provinces canadiennes. 
+
+```{r}
+#| label: enhanced-species-table
+#| column: screen-inset-shaded
+
+dplyr::select(single_hits, Group, Species) |>
+    dplyr::left_join(final_species_df, by = c("Species" = "species")) |>
+    dplyr::relocate(species_formatted, Quebec, .after = "Group") |>
+    dplyr::select(-Species, -gbif_url, -col_link, -itis_url, -display_name, -tsn, -English, -French, -exotic, -native) |>
+    reactable::reactable(
+        # Enhanced default styling
+        defaultColDef = reactable::colDef(
+            sortable = TRUE,
+            align = "center",
+            cell = function(value) {
+                if (!is.na(value) && value != "") {
+                    htmltools::div(
+                        style = "display: flex; justify-content: center; align-items: center;",
+                        htmltools::span(style = "width: 12px; height: 12px; border-radius: 50%; background-color: #403f3fff; display: inline-block;")
+                    )
+                } else {
+                    ""
+                }
+            }
+        ),
+        # Custom column definitions
+        columns = list(
+            Group = reactable::colDef(
+                sortable = TRUE,
+                align = "center",
+                minWidth = 120
+            ),
+            species_formatted = reactable::colDef(
+                name = "Species",
+                searchable = TRUE,
+                minWidth = 300,
+                align = "left",
+                html = TRUE
+            )
+        ),
+        # Table options
+        searchable = TRUE,
+        defaultPageSize = 50,
+        showPageSizeOptions = TRUE,
+        pageSizeOptions = c(25, 50, 100, 200),
+        striped = TRUE,
+        bordered = TRUE,
+        compact = TRUE,
+        theme = reactable::reactableTheme(
+            # Vertically center cells
+            cellStyle = list(display = "flex", flexDirection = "column", justifyContent = "center")
+        )
+    )
+```
