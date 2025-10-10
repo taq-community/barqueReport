@@ -4,49 +4,86 @@
 # barqueReport
 
 <!-- badges: start -->
+
+[![R-CMD-check](https://github.com/taq-community/barqueReport/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/taq-community/barqueReport/actions/workflows/R-CMD-check.yaml)
+[![pkgdown](https://github.com/taq-community/barqueReport/actions/workflows/pkgdown.yaml/badge.svg)](https://github.com/taq-community/barqueReport/actions/workflows/pkgdown.yaml)
+[![Lifecycle:
+experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 <!-- badges: end -->
 
-The goal of barqueReport is to …
-
 ## Installation
+
+### Installing barqueReport
 
 You can install the development version of barqueReport from
 [GitHub](https://github.com/) with:
 
 ``` r
-# install.packages("pak")
-pak::pak("taq-community/barqueReport")
+install.packages("remotes")
+remotes::install_github("taq-community/barqueReport")
 ```
 
-## Example
+## Quick Start
 
-This is a basic example which shows you how to solve a common problem:
+### Generate a Metabarcoding Report
+
+The main function generates an interactive HTML report from barque
+pipeline output:
 
 ``` r
 library(barqueReport)
-## basic example code
+
+# Interactive file selection (recommended for beginners)
+generate_metabarcoding_report(
+  barque_output_folder = file.choose(),  # Select barque output folder
+  samples_ids = c("ST1", "ST2", "ST3", "ST4"),
+  title = "Marine Biodiversity Assessment",
+  subtitle = "Lake Superior Study",
+  author = "Research Team",
+  illumina_quality_file = file.choose(),  # Select Quality_Metrics.csv file
+  blank_lab = "LAB_BLANK",
+  blank_field = "FIELD_BLANK"
+)
+
+# Alternative: specify paths directly
+generate_metabarcoding_report(
+  barque_output_folder = "/path/to/barque/output",
+  samples_ids = c("ST1", "ST2", "ST3", "ST4"),
+  illumina_quality_file = "/path/to/Quality_Metrics.csv"
+)
 ```
 
-What is special about using `README.Rmd` instead of just `README.md`?
-You can include R chunks like so:
+### Process Species Information
+
+Enhance species data with taxonomic and conservation information:
 
 ``` r
-summary(cars)
-#>      speed           dist       
-#>  Min.   : 4.0   Min.   :  2.00  
-#>  1st Qu.:12.0   1st Qu.: 26.00  
-#>  Median :15.0   Median : 36.00  
-#>  Mean   :15.4   Mean   : 42.98  
-#>  3rd Qu.:19.0   3rd Qu.: 56.00  
-#>  Max.   :25.0   Max.   :120.00
+# Load your species list
+species_list <- c("Salmo trutta", "Oncorhynchus mykiss", "Perca flavescens")
+
+# Fetch comprehensive species information
+enhanced_species <- process_species_info(species_list)
+
+# View the results
+head(enhanced_species)
 ```
 
-You’ll still need to render `README.Rmd` regularly, to keep `README.md`
-up-to-date. `devtools::build_readme()` is handy for this.
+What does this function?
 
-You can also embed plots, for example:
+- Fetches conservation status from NatureServe Canada
+- Retrieves common names from ITIS (French and English)
+- Adds links to GBIF, Catalogue of Life, and ITIS databases
+- Creates formatted species names with external links
 
-<img src="man/figures/README-pressure-1.png" width="100%" />
+## File Structure Requirements
 
-In that case, don’t forget to commit and push the resulting figure
-files, so they display on GitHub and CRAN.
+Your barque output folder should contain:
+
+    barque_output/
+    ├── 12_results/
+    │   ├── 12s200pb_species_table.csv
+    │   └── sequence_dropout.csv
+    └── [other pipeline outputs]
+
+For Illumina quality analysis, provide the `Quality_Metrics.csv` file
+from your sequencer.

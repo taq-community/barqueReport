@@ -19,17 +19,17 @@ load_barque_data <- function(barque_output_folder, samples_ids) {
   
   # Remove the total row and process
   species_data <- species_data |>
-    dplyr::filter(rlang::.data$Group != "Total") |>
-    dplyr::select(rlang::.data$Group, rlang::.data$Genus, rlang::.data$Species, dplyr::all_of(samples_ids)) |>
-    dplyr::mutate(Species = paste(rlang::.data$Genus, rlang::.data$Species)) |>
-    dplyr::select(-rlang::.data$Genus)
+    dplyr::filter(Group != "Total") |>
+    dplyr::select(Group, Genus, Species, dplyr::all_of(samples_ids)) |>
+    dplyr::mutate(Species = paste(Genus, Species)) |>
+    dplyr::select(-Genus)
   
   # Separate single hits from multi-hits
   single_hits <- species_data |>
-    dplyr::filter(rlang::.data$Group != "zMultiple")
+    dplyr::filter(Group != "zMultiple")
   
   multi_hits <- species_data |>
-    dplyr::filter(rlang::.data$Group == "zMultiple")
+    dplyr::filter(Group == "zMultiple")
   
   return(list(
     single_hits = single_hits,
@@ -93,12 +93,12 @@ load_dropout_data <- function(barque_output_folder, samples_ids) {
   
   # Filter data to keep only sample_ids from params
   dropout_filtered <- dropout_data |>
-    dplyr::filter(rlang::.data$Sample %in% samples_ids)
+    dplyr::filter(Sample %in% samples_ids)
   
   # Reshape data for plotting
   dropout_long <- dropout_filtered |>
     tidyr::pivot_longer(
-      cols = -rlang::.data$Sample,
+      cols = -Sample,
       names_to = "step",
       values_to = "sequences"
     )

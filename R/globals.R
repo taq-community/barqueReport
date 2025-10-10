@@ -1,0 +1,21 @@
+utils::globalVariables(c(
+  "Group",
+  "Genus",
+  "Species",
+  "Sample",
+  "SampleID",
+  "language",
+  "commonName",
+  "subnationCode",
+  "currentRecordId",
+  "submittedName",
+  "col_link",
+  "tsn",
+  "French",
+  "display_name",
+  "species",
+  "gbif_url",
+  "itis_url",
+  "Mean Quality Score (PF)",
+  "% Q30"
+))
