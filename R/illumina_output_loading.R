@@ -38,11 +38,11 @@ illumina_summary_stats <- function(path = NULL, sample_ids = NULL) {
     }
     
     return(readr::read_csv(path, show_col_types = FALSE) |>
-        dplyr::filter(SampleID %in% sample_ids) |>
-        dplyr::group_by(SampleID) |>
+        dplyr::filter(rlang::.data$SampleID %in% sample_ids) |>
+        dplyr::group_by(rlang::.data$SampleID) |>
         dplyr::summarise(
-            mu_pf = median(`Mean Quality Score (PF)`, na.rm = TRUE),
-            mu_q30 = median(`% Q30`, na.rm = TRUE),
+            mu_pf = stats::median(rlang::.data$`Mean Quality Score (PF)`, na.rm = TRUE),
+            mu_q30 = stats::median(rlang::.data$`% Q30`, na.rm = TRUE),
             .groups = "drop"
         ))
 }

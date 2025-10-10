@@ -27,7 +27,7 @@ generate_metabarcoding_report(
 
 \item{output_dir}{Output directory (default: current working directory)}
 
-\item{title}{Report title (default: "🧬 Rapport de métabarcoding")}
+\item{title}{Report title (default: "Rapport de metabarcoding")}
 
 \item{subtitle}{Report subtitle (default: "")}
 

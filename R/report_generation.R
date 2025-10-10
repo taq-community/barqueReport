@@ -6,7 +6,7 @@
 #' @param samples_ids Vector of sample IDs to include in the analysis
 #' @param output_file Output file name (default: "metabarcoding_report.html")
 #' @param output_dir Output directory (default: current working directory)
-#' @param title Report title (default: "🧬 Rapport de métabarcoding")
+#' @param title Report title (default: "Rapport de metabarcoding")
 #' @param subtitle Report subtitle (default: "")
 #' @param author Report author(s) (default: "")
 #' @param illumina_quality_file Path to Illumina quality file (optional)
@@ -38,7 +38,7 @@ generate_metabarcoding_report <- function(
   samples_ids,
   output_file = "metabarcoding_report.html",
   output_dir = getwd(),
-  title = "🧬 Rapport de métabarcoding",
+  title = "\U0001F9EC Rapport de m\u00E9tabarcoding",
   subtitle = "",
   author = "",
   illumina_quality_file = NULL,
