@@ -48,37 +48,74 @@
 <div class="page-header"><h1 id="barquereport">barqueReport<a class="anchor" aria-label="anchor" href="#barquereport"></a>
 </h1></div>
 <!-- badges: start -->
-<!-- badges: end -->
-<p>The goal of barqueReport is to …</p>
+
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
+<div class="section level3">
+<h3 id="installing-barquereport">Installing barqueReport<a class="anchor" aria-label="anchor" href="#installing-barquereport"></a>
+</h3>
 <p>You can install the development version of barqueReport from <a href="https://github.com/" class="external-link">GitHub</a> with:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># install.packages("pak")</span></span>
-<span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"taq-community/barqueReport"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"remotes"</span><span class="op">)</span></span>
+<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"taq-community/barqueReport"</span><span class="op">)</span></span></code></pre></div>
+</div>
 </div>
 <div class="section level2">
-<h2 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
+<h2 id="quick-start">Quick Start<a class="anchor" aria-label="anchor" href="#quick-start"></a>
 </h2>
-<p>This is a basic example which shows you how to solve a common problem:</p>
+<div class="section level3">
+<h3 id="generate-a-metabarcoding-report">Generate a Metabarcoding Report<a class="anchor" aria-label="anchor" href="#generate-a-metabarcoding-report"></a>
+</h3>
+<p>The main function generates an interactive HTML report from barque pipeline output:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">barqueReport</span><span class="op">)</span></span>
-<span><span class="co">## basic example code</span></span></code></pre></div>
-<p>What is special about using <code>README.Rmd</code> instead of just <code>README.md</code>? You can include R chunks like so:</p>
+<span></span>
+<span><span class="co"># Interactive file selection (recommended for beginners)</span></span>
+<span><span class="fu"><a href="reference/generate_metabarcoding_report.html">generate_metabarcoding_report</a></span><span class="op">(</span></span>
+<span>  barque_output_folder <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.choose.html" class="external-link">file.choose</a></span><span class="op">(</span><span class="op">)</span>,  <span class="co"># Select barque output folder</span></span>
+<span>  samples_ids <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ST1"</span>, <span class="st">"ST2"</span>, <span class="st">"ST3"</span>, <span class="st">"ST4"</span><span class="op">)</span>,</span>
+<span>  title <span class="op">=</span> <span class="st">"Marine Biodiversity Assessment"</span>,</span>
+<span>  subtitle <span class="op">=</span> <span class="st">"Lake Superior Study"</span>,</span>
+<span>  author <span class="op">=</span> <span class="st">"Research Team"</span>,</span>
+<span>  illumina_quality_file <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/file.choose.html" class="external-link">file.choose</a></span><span class="op">(</span><span class="op">)</span>,  <span class="co"># Select Quality_Metrics.csv file</span></span>
+<span>  blank_lab <span class="op">=</span> <span class="st">"LAB_BLANK"</span>,</span>
+<span>  blank_field <span class="op">=</span> <span class="st">"FIELD_BLANK"</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Alternative: specify paths directly</span></span>
+<span><span class="fu"><a href="reference/generate_metabarcoding_report.html">generate_metabarcoding_report</a></span><span class="op">(</span></span>
+<span>  barque_output_folder <span class="op">=</span> <span class="st">"/path/to/barque/output"</span>,</span>
+<span>  samples_ids <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ST1"</span>, <span class="st">"ST2"</span>, <span class="st">"ST3"</span>, <span class="st">"ST4"</span><span class="op">)</span>,</span>
+<span>  illumina_quality_file <span class="op">=</span> <span class="st">"/path/to/Quality_Metrics.csv"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="process-species-information">Process Species Information<a class="anchor" aria-label="anchor" href="#process-species-information"></a>
+</h3>
+<p>Enhance species data with taxonomic and conservation information:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">cars</span><span class="op">)</span></span>
-<span><span class="co">#&gt;      speed           dist       </span></span>
-<span><span class="co">#&gt;  Min.   : 4.0   Min.   :  2.00  </span></span>
-<span><span class="co">#&gt;  1st Qu.:12.0   1st Qu.: 26.00  </span></span>
-<span><span class="co">#&gt;  Median :15.0   Median : 36.00  </span></span>
-<span><span class="co">#&gt;  Mean   :15.4   Mean   : 42.98  </span></span>
-<span><span class="co">#&gt;  3rd Qu.:19.0   3rd Qu.: 56.00  </span></span>
-<span><span class="co">#&gt;  Max.   :25.0   Max.   :120.00</span></span></code></pre></div>
-<p>You’ll still need to render <code>README.Rmd</code> regularly, to keep <code>README.md</code> up-to-date. <code>devtools::build_readme()</code> is handy for this.</p>
-<p>You can also embed plots, for example:</p>
-<p><img src="reference/figures/README-pressure-1.png" width="100%"></p>
-<p>In that case, don’t forget to commit and push the resulting figure files, so they display on GitHub and CRAN.</p>
+<code class="sourceCode R"><span><span class="co"># Load your species list</span></span>
+<span><span class="va">species_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Salmo trutta"</span>, <span class="st">"Oncorhynchus mykiss"</span>, <span class="st">"Perca flavescens"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Fetch comprehensive species information</span></span>
+<span><span class="va">enhanced_species</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/process_species_info.html">process_species_info</a></span><span class="op">(</span><span class="va">species_list</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># View the results</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">enhanced_species</span><span class="op">)</span></span></code></pre></div>
+<p>This function: - Fetches conservation status from NatureServe Canada - Retrieves common names from ITIS (French and English) - Adds links to GBIF, Catalogue of Life, and ITIS databases - Creates formatted species names with external links</p>
+</div>
+</div>
+<div class="section level2">
+<h2 id="file-structure-requirements">File Structure Requirements<a class="anchor" aria-label="anchor" href="#file-structure-requirements"></a>
+</h2>
+<p>Your barque output folder should contain:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>barque_output<span class="sc">/</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>├── <span class="dv">12</span>_results<span class="sc">/</span></span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>│   ├── <span class="dv">12</span>s200pb_species_table.csv</span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>│   └── sequence_dropout.csv</span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>└── [other pipeline outputs]</span></code></pre></div>
+<p>For Illumina quality analysis, provide the <code>Quality_Metrics.csv</code> file from your sequencer.</p>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="license">
@@ -104,7 +141,14 @@
 </ul>
 </div>
 
-
+<div class="dev-status">
+<h2 data-toc-skip>Dev status</h2>
+<ul class="list-unstyled">
+<li><a href="https://github.com/taq-community/barqueReport/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/taq-community/barqueReport/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></li>
+<li><a href="https://github.com/taq-community/barqueReport/actions/workflows/pkgdown.yaml" class="external-link"><img src="https://github.com/taq-community/barqueReport/actions/workflows/pkgdown.yaml/badge.svg" alt="pkgdown"></a></li>
+<li><a href="https://lifecycle.r-lib.org/articles/stages.html#experimental" class="external-link"><img src="https://img.shields.io/badge/lifecycle-experimental-orange.svg" alt="Lifecycle: experimental"></a></li>
+</ul>
+</div>
 
   </aside>
 </div>
