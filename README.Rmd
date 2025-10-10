@@ -45,9 +45,9 @@ library(barqueReport)
 generate_metabarcoding_report(
   barque_output_folder = file.choose(),  # Select barque output folder
   samples_ids = c("ST1", "ST2", "ST3", "ST4"),
-  title = "Marine Biodiversity Assessment",
-  subtitle = "Lake Superior Study",
-  author = "Research Team",
+  title = "Lake Superior Study",
+  subtitle = "",
+  author = "Steve Vissault, Julie Couillard & Tuan Ahn To",
   illumina_quality_file = file.choose(),  # Select Quality_Metrics.csv file
   blank_lab = "LAB_BLANK",
   blank_field = "FIELD_BLANK"

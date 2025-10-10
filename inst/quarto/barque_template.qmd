@@ -4,8 +4,8 @@ subtitle: "Nemaska Lithium"
 author: "Julie Couillard, Tuan Anh To & Steve Vissault"
 date: today
 params:
-  barque_output_folder: "/home/steve/Documents/INRS/Bioinfo/metabarcoding/Nemaska-Lithium/archive-nemaska-lithium-results-20251002_170026"
-  illumina_quality_file: "/home/steve/Documents/INRS/Alliance-shared/Metabarcoding/Nemaska/Nemaska-fastq/fastq/Reports/Quality_Metrics.csv"
+  barque_output_folder: ""
+  illumina_quality_file: ""
   samples_ids: ["BLNEM", "Plage", "ST1", "ST10", "ST11", "ST12", "ST13", "ST2", "ST3", "ST4", "ST5", "ST6", "ST7", "ST8", "ST9", "qPCRctrl"]
   blank_lab: "BLNEM"
   blank_field: "qPCRctrl"
@@ -49,7 +49,7 @@ bslib::layout_columns(
                 title = toupper("% Q30"),
                 value = paste(round(mean(illumina_stats$mu_q30), 2) * 100, "%"),
                 showcase = bsicons::bs_icon("shield-check"),
-                htmltools::p("Représente le pourcentage de bases séquencées ayant un score de qualité Phred d'au moins 30)")
+                htmltools::p("Bases séquencées ayant un score de Phred d'au moins 30)")
             )
         )
     ),
@@ -59,7 +59,7 @@ bslib::layout_columns(
                 title = toupper("Mean Quality Score (PF)"),
                 value = round(mean(illumina_stats$mu_pf),2),
                 showcase = bsicons::bs_icon("speedometer2"),
-                htmltools::p("Score de qualité Phred moyen qui ont passé les filtres de qualité (PF - Passing Filter)")
+                htmltools::p("Score de qualité Phred moyen (PF - Passing Filter)")
             )
         )
     )
@@ -250,13 +250,15 @@ Visualisation en carte de chaleur du nombre de lectures par espèce à travers l
 #| label: single-hits-table
 #| column: screen-inset-shaded
 # Enhanced single hits table with better styling
-single_hits |> 
+single_hits |>
     dplyr::left_join(
         dplyr::select(
-            final_species_df, 
+            final_species_df,
             species,
             species_formatted
-        ), by = c("Species" = "species")) |>
+        ),
+        by = c("Species" = "species")
+    ) |>
     dplyr::select(-Species) |>
     dplyr::relocate(species_formatted, .after = "Group") |>
     reactable::reactable(
@@ -291,11 +293,7 @@ single_hits |>
             Group = reactable::colDef(
                 searchable = TRUE,
                 minWidth = 120,
-                align = "left",
-                style = list(
-                    backgroundColor = "#f8f9fa",
-                    fontStyle = "italic"
-                )
+                align = "left"
             )
         ),
         # Table options
@@ -346,14 +344,16 @@ dplyr::select(single_hits, Group, Species) |>
             Group = reactable::colDef(
                 sortable = TRUE,
                 align = "center",
-                minWidth = 120
+                minWidth = 120,
+                cell = \(v) v
             ),
             species_formatted = reactable::colDef(
                 name = "Species",
                 searchable = TRUE,
                 minWidth = 300,
                 align = "left",
-                html = TRUE
+                html = TRUE,
+                cell = \(v) v
             )
         ),
         # Table options
