@@ -35,7 +35,7 @@ library(barqueReport)
 
 # Interactive file selection (recommended for beginners)
 generate_metabarcoding_report(
-  barque_output_folder = file.choose(),  # Select barque output folder
+  barque_output_folder = choose.dir(),  # Select barque output folder
   samples_ids = c("ST1", "ST2", "ST3", "ST4"),
   title = "Lake Superior Study",
   subtitle = "",
