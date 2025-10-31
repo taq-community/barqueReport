@@ -15,7 +15,7 @@
 #' }
 load_barque_data <- function(barque_output_folder, samples_ids) {
   # Load the species table
-  species_data <- utils::read.csv(file.path(barque_output_folder, "12_results", "12s200pb_species_table.csv"))
+  species_data <- utils::read.csv(file.path(barque_output_folder, "12s200pb_species_table.csv"))
   
   # Remove the total row and process
   species_data <- species_data |>
@@ -89,7 +89,7 @@ barque_summary_stats <- function(single_hits, multi_hits, samples_ids) {
 #' }
 load_dropout_data <- function(barque_output_folder, samples_ids) {
   # Read the sequence dropout data
-  dropout_data <- readr::read_csv(file.path(barque_output_folder, "12_results", "sequence_dropout.csv"))
+  dropout_data <- readr::read_csv(file.path(barque_output_folder, "sequence_dropout.csv"))
   
   # Filter data to keep only sample_ids from params
   dropout_filtered <- dropout_data |>

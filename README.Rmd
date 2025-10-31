@@ -85,13 +85,6 @@ What does this function?
 
 ## File Structure Requirements
 
-Your barque output folder should contain:
-```
-barque_output/
-├── 12_results/
-│   ├── 12s200pb_species_table.csv
-│   └── sequence_dropout.csv
-└── [other pipeline outputs]
-```
-
-For Illumina quality analysis, provide the `Quality_Metrics.csv` file from your sequencer.
+Your barque output folder should be the `12_results` folder produce by barque.
+For Illumina quality analysis, provide the `Quality_Metrics.csv` file
+from your sequencer.
