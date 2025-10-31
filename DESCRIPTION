@@ -1,6 +1,6 @@
 Package: barqueReport
 Title: Tools for Metabarcoding Report Generation
-Version: 0.0.0.9000
+Version: 0.1.0
 Authors@R: 
     person("Steve", "Vissault", "", "steve.vissault@inrs.ca", role = c("aut", "cre"))
 Description: A comprehensive toolkit for processing and reporting metabarcoding data 
