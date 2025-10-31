@@ -206,7 +206,7 @@ p <- ggplot2::ggplot(dropout_long, ggplot2::aes(x = stats::reorder(step_label, s
         size = 3,
         alpha = 0.8
     ) +
-    ggplot2::scale_colour_manual(values = grDevices::colorRampPalette(MetBrewer::met.brewer("Signac", 13))(16)) +
+    ggplot2::scale_colour_manual(values = grDevices::colorRampPalette(MetBrewer::met.brewer("Signac", 13))(length(params$samples_ids))) +
     ggplot2::labs(
         x = "",
         y = "Nombre de séquences",
@@ -261,6 +261,7 @@ single_hits |>
     ) |>
     dplyr::select(-Species) |>
     dplyr::relocate(species_formatted, .after = "Group") |>
+    dplyr::distinct() |>
     reactable::reactable(
         # Enhanced default styling
         defaultColDef = reactable::colDef(
@@ -322,7 +323,7 @@ Pour chaque espèce, nous avons interrogé la base de données [NatureServe Cana
 dplyr::select(single_hits, Group, Species) |>
     dplyr::left_join(final_species_df, by = c("Species" = "species")) |>
     dplyr::relocate(species_formatted, Quebec, .after = "Group") |>
-    dplyr::select(-Species, -gbif_url, -col_link, -itis_url, -display_name, -tsn, -English, -French, -exotic, -native) |>
+    dplyr::select(-Species, -gbif_url, -col_link, -itis_url, -display_name, -tsn, -English, -French, -exotic, -native, -value) |>
     reactable::reactable(
         # Enhanced default styling
         defaultColDef = reactable::colDef(
