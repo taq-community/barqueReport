@@ -15,23 +15,23 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 Imports:
     dplyr,
+    bsicons,
     natserv,
+    ggiraph,
+    ggplot2,
     purrr,
     quarto,
+    MetBrewer,
     readr,
+    reactable,
+    reactablefmtr,
     stats,
     stringr,
     taxize,
     tidyr,
     utils
 Suggests: 
-    bsicons,
     bslib,
-    ggiraph,
-    ggplot2,
     htmltools,
     knitr,
-    MetBrewer,
-    reactable,
-    reactablefmtr,
     rmarkdown
