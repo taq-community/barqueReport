@@ -1,0 +1,240 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode$for(hyperrefoptions)$,$hyperrefoptions$$endfor$}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+$if(colorlinks)$
+\PassOptionsToPackage{dvipsnames,svgnames,x11names}{xcolor}
+$endif$
+
+\documentclass[
+$if(fontsize)$
+  $fontsize$,
+$endif$
+$if(papersize)$
+  $papersize$paper,
+$endif$
+$for(classoption)$
+  $classoption$$sep$,
+$endfor$
+]{$if(documentclass)$$documentclass$$else$article$endif$}
+
+\usepackage{tgadventor}
+
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[$for(microtypeoptions)$$microtypeoptions$$sep$,$endfor$]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+
+% Geometry
+$if(geometry)$
+\usepackage[$for(geometry)$$geometry$$sep$,$endfor$]{geometry}
+$else$
+\usepackage[margin=1in]{geometry}
+$endif$
+
+% Colors
+$if(colorlinks)$
+\usepackage{xcolor}
+$endif$
+
+% Hyperlinks
+\usepackage{hyperref}
+\hypersetup{
+$if(title-meta)$
+  pdftitle={$title-meta$},
+$endif$
+$if(author-meta)$
+  pdfauthor={$author-meta$},
+$endif$
+$if(lang)$
+  pdflang={$lang$},
+$endif$
+$if(subject)$
+  pdfsubject={$subject$},
+$endif$
+$if(keywords)$
+  pdfkeywords={$for(keywords)$$keywords$$sep$, $endfor$},
+$endif$
+$if(colorlinks)$
+  colorlinks=true,
+  linkcolor={$if(linkcolor)$$linkcolor$$else$Maroon$endif$},
+  filecolor={$if(filecolor)$$filecolor$$else$Maroon$endif$},
+  citecolor={$if(citecolor)$$citecolor$$else$Blue$endif$},
+  urlcolor={$if(urlcolor)$$urlcolor$$else$Blue$endif$},
+$else$
+  hidelinks,
+$endif$
+  pdfcreator={LaTeX via pandoc with barqueReport template}}
+\urlstyle{same} % disable monospaced font for URLs
+
+% Graphics
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+
+% Pandoc image bounding macro (required for Quarto/Pandoc figures)
+\providecommand{\pandocbounded}[1]{#1}
+
+% Tables
+\usepackage{longtable,booktabs,array}
+\usepackage{calc} % for calculating minipage widths
+
+% Code blocks
+$if(listings)$
+\usepackage{listings}
+\newcommand{\passthrough}[1]{#1}
+\lstset{defaultdialect=[5.3]Lua}
+\lstset{defaultdialect=[x86masm]Assembler}
+$endif$
+$if(highlighting-macros)$
+$highlighting-macros$
+$endif$
+
+% Lists - Define tightlist command for Pandoc
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+% Fancy headers
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{$if(title-short)$$title-short$$else$$title$$endif$}
+\fancyhead[R]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% Background package for cover page
+\usepackage{eso-pic}
+\usepackage{tikz}
+
+% Custom cover page command
+\newcommand{\makecover}{
+  \begin{titlepage}
+    % Background image
+    $if(cover-image)$
+    \AddToShipoutPictureBG*{%
+      \AtPageUpperLeft{%
+        \raisebox{-\height}{%
+          \includegraphics[width=\paperwidth,height=\paperheight,keepaspectratio=false]{$cover-image$}%
+        }%
+      }%
+    }
+    $endif$
+
+    \vspace*{0.15\textheight}
+
+    \begin{center}
+      % Title in white
+      {\color{white}\LARGE \bfseries $title$ \par}
+      \vspace{1cm}
+
+      % Subtitle in white
+      $if(subtitle)$
+      {\color{white}\large $subtitle$ \par}
+      \vspace{0.5cm}
+      $endif$
+
+      \vspace{2cm}
+
+      $if(client-name)$
+      {\color{white} \large \textbf{Échantillonnage réalisé par } \par}
+      {\color{white} \Large $client-name$} \\[0.5cm]
+      $endif$
+
+      \vspace{2.5cm}
+
+      % Authorship sections
+      $if(report-author)$
+      {\color{white}\normalsize \textbf{Extraction des échantillons et rédaction du rapport final réalisés par} \par}
+      \vspace{0.5cm}
+      {\color{white}\normalsize $report-author$ \par}
+      \vspace{1cm}
+      $endif$
+
+      $if(lab-author)$
+      {\color{white}\normalsize \textbf{Analyse métagénomique en laboratoire} \par}
+      \vspace{0.5cm}
+      {\color{white}\normalsize $lab-author$ \par}
+      \vspace{1cm}
+      $endif$
+
+      $if(bioinfo-author)$
+      {\color{white}\normalsize \textbf{Analyses bio-informatiques} \par}
+      \vspace{0.5cm}
+      {\color{white}\normalsize $bioinfo-author$ \par}
+      \vspace{1cm}
+      $endif$
+
+      \vspace{1cm}
+    \end{center}
+  \end{titlepage}
+  \clearpage
+}
+
+% Table of contents customization
+$if(toc)$
+\usepackage{tocloft}
+\setlength{\cftbeforesecskip}{5pt}
+$endif$
+
+% Section formatting with custom blue color
+\usepackage{titlesec}
+\definecolor{customblue}{HTML}{3a6881}
+\titleformat{\section}
+  {\normalfont\Large\bfseries\color{customblue}}{\thesection}{1em}{}
+\titleformat{\subsection}
+  {\normalfont\large\bfseries\color{customblue}}{\thesubsection}{1em}{}
+
+% Prevent orphans and widows
+\widowpenalty=10000
+\clubpenalty=10000
+
+$for(header-includes)$
+$header-includes$
+$endfor$
+
+% Document begins
+\begin{document}
+
+% Custom cover page
+\makecover
+
+% Table of contents
+$if(toc)$
+{
+$if(toc-title)$
+\renewcommand*\contentsname{$toc-title$}
+$endif$
+\tableofcontents
+$if(toc-depth)$
+\setcounter{tocdepth}{$toc-depth$}
+$endif$
+\clearpage
+}
+$endif$
+
+% Main content
+$body$
+
+% Bibliography
+$if(natbib)$
+$if(bibliography)$
+$if(biblio-title)$
+$if(has-chapters)$
+\renewcommand\bibname{$biblio-title$}
+$else$
+\renewcommand\refname{$biblio-title$}
+$endif$
+$endif$
+\bibliography{$for(bibliography)$$bibliography$$sep$,$endfor$}
+$endif$
+$endif$
+
+$if(biblatex)$
+\printbibliography$if(biblio-title)$[title=$biblio-title$]$endif$
+$endif$
+
+\end{document}

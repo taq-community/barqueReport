@@ -1,0 +1,361 @@
+---
+title: "Rapport d'Analyse Métagénomique - 12S"
+subtitle: ""
+date: today
+params:
+  barque_output_folder: "/home/steve/Documents/git/barque/12_results"
+  samples_ids: ["M1", "M2", "M3", "M4", "M5"]
+  title_short: "Rapport 12S"
+  client_name: ""
+  sample_type: "ADN extrait"
+  geographic_region: ""
+  target_species: "Espèces aquatiques (poissons)"
+  lab_author: ""
+  bioinfo_author: ""
+  report_author: ""
+title-short: "`r params$title_short`"
+client-name: "`r params$client_name`"
+cover-image: "`r system.file('images/cover.png', package = 'barqueReport')`"
+lab-author: "`r params$lab_author`"
+bioinfo-author: "`r params$bioinfo_author`"
+report-author: "`r params$report_author`"
+format:
+  pdf:
+    template: template.tex
+    toc: true
+    toc-depth: 2
+    toc-title: "Table des matières"
+    number-sections: true
+    highlight-style: github
+    colorlinks: true
+    keep-tex: false
+    include-in-header:
+      text: |
+        \usepackage[french]{babel}
+        \definecolor{customblue}{HTML}{3a6881}
+        \hypersetup{linkcolor=customblue, urlcolor=customblue, citecolor=customblue}
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r setup}
+library(dplyr)
+library(readr)
+library(knitr)
+
+# Load barque data
+barque_data <- barqueReport::load_barque_data(params$barque_output_folder, params$samples_ids)
+single_hits <- barque_data$single_hits
+multi_hits <- barque_data$multi_hits
+
+# Calculate stats
+stats <- barqueReport::barque_summary_stats(single_hits, multi_hits, params$samples_ids)
+
+# Load dropout data
+dropout_data <- readr::read_csv(file.path(params$barque_output_folder, "sequence_dropout.csv")) |>
+  dplyr::filter(Sample %in% params$samples_ids)
+```
+
+# Informations sur le projet
+
+**Client:** `r params$client_name`
+**Date du rapport:** `r format(Sys.Date(), "%d %B %Y")`
+
+## Échantillons
+
+- **Nombre d'échantillons pour analyse 12S:** `r stats$samples` échantillons
+- **Type d'échantillons fournis:** `r params$sample_type`
+- **Région géographique:** `r params$geographic_region`
+- **Espèces ciblées:** `r params$target_species`
+
+# Paramètres de méthode de laboratoire
+
+## Métagénomique - Amorces utilisées
+
+**12S:**
+
+- Type: MiFish-U-F et U-R (Miya et al. 2015)
+- Taille de l'amplicon: 174 bp
+- Nombre de cycles PCR: 35
+
+## Paramètres PCR
+
+- **Type de PCR:** Approche avec combinaison unique de 2 barcodes de 8bp
+- **Dilution:** Aucune dilution
+- **Volume d'ADN utilisé:** 3 µl par réplicat de PCR
+- **Réplicats techniques par échantillon:** 5 réplicats
+- **Témoin positif:** Aucun
+- **Témoin négatif:** 1 témoin négatif de PCR par échantillon testé + 1 témoin négatif de mastermix
+
+## Séquençage
+
+- **Séquenceur:** AVITI de Element Bioscience
+- **Kit:** 300 sequencing kit (2x300)
+
+# Paramètres bio-informatiques
+
+## Suite d'analyse
+
+- **Logiciel:** Barque (<https://github.com/enormandeau/barque>)
+
+## Bases de données
+
+- **12S:** Base de données Barque (MitoFish, GenBank + banque interne)
+
+## Seuils et filtres
+
+- **Minimum de séquences par espèce:**
+  - 10 séquences dans un échantillon
+  - 20 séquences total sur le projet
+- **Seuil de filtrage:** Séquences < 1/10,000 de l'échantillon sont enlevées
+- **Similarité minimale pour identification:** 97%
+
+# Résultats 12S
+
+## Métriques de séquençage
+
+```{r}
+#| label: tbl-sequencing
+#| tbl-cap: "Métriques de séquençage par étape du pipeline"
+
+# Calculate metrics from dropout data
+total_samples <- dropout_data |> dplyr::pull(Sample) |> unique() |> length()
+
+metrics <- dropout_data |>
+  dplyr::summarise(
+    brutes = sum(`04_data`, na.rm = TRUE),
+    trimmed = sum(`05_trimmed`, na.rm = TRUE),
+    merged = sum(`06_merged`, na.rm = TRUE),
+    split = sum(`07_split_amplicons`, na.rm = TRUE),
+    chimeres = sum(`08_chimeras`, na.rm = TRUE),
+    annotees = sum(`12_results`, na.rm = TRUE)
+  )
+
+# Create summary table
+data.frame(
+  Etape = c(
+    "Total de séquences brutes",
+    "Après trimming",
+    "Après merge",
+    "Après split",
+    "Après élimination des chimères",
+    "Total annotées"
+  ),
+  Sequences = c(
+    format(metrics$brutes, big.mark = " "),
+    format(metrics$trimmed, big.mark = " "),
+    format(metrics$merged, big.mark = " "),
+    format(metrics$split, big.mark = " "),
+    format(metrics$chimeres, big.mark = " "),
+    format(metrics$annotees, big.mark = " ")
+  )
+) |>
+  knitr::kable(col.names = c("Étape", "Nombre de séquences"))
+```
+
+## Lectures écartées
+
+```{r}
+#| label: fig-reads-filtered-out
+#| fig-cap: "Nombre de lectures écartées lors du post-traitement des données de séquençage"
+#| fig-width: 10
+#| fig-height: 6
+
+# Load and process sequence dropout data
+dropout_long <- barqueReport::load_dropout_data(params$barque_output_folder, params$samples_ids) |>
+  dplyr::mutate(
+    step_label = dplyr::case_when(
+      step == "04_data" ~ "Séquences brutes",
+      step == "05_trimmed" ~ "Filtration",
+      step == "06_merged" ~ "Fusion",
+      step == "07_split_amplicons" ~ "Classification",
+      step == "08_chimeras" ~ "Retrait chimères",
+      step == "12_results" ~ "Séquences finales",
+      TRUE ~ step
+    ),
+    step_order = dplyr::case_when(
+      step == "04_data" ~ 1,
+      step == "05_trimmed" ~ 2,
+      step == "06_merged" ~ 3,
+      step == "07_split_amplicons" ~ 4,
+      step == "08_chimeras" ~ 5,
+      step == "12_results" ~ 6,
+      TRUE ~ 0
+    )
+  ) |>
+  dplyr::arrange(Sample, step_order)
+
+# Create ggplot2 plot
+ggplot2::ggplot(dropout_long, ggplot2::aes(x = stats::reorder(step_label, step_order), y = sequences, group = Sample, color = Sample)) +
+  ggplot2::geom_line(linewidth = 0.8, alpha = 0.8) +
+  ggplot2::geom_point(size = 2.5, alpha = 0.8) +
+  ggplot2::scale_colour_manual(values = grDevices::colorRampPalette(MetBrewer::met.brewer("Signac", 13))(length(params$samples_ids))) +
+  ggplot2::scale_y_continuous(labels = scales::label_number(big.mark = " ")) +
+  ggplot2::labs(
+    x = "",
+    y = "Nombre de séquences",
+    color = "Échantillons"
+  ) +
+  ggplot2::theme_light(base_size = 12) +
+  ggplot2::theme(
+    axis.text.x = ggplot2::element_text(angle = 45, hjust = 1),
+    legend.position = "right",
+    panel.grid.minor = ggplot2::element_blank()
+  ) +
+  ggplot2::guides(color = ggplot2::guide_legend(override.aes = list(size = 3)))
+```
+
+## Résultats d'identification
+
+- **Nombre d'espèces de poissons détectées:** `r stats$single_species`
+- **Nombre de groupes ambigus (Multiple Hits):** `r stats$multi_groups`
+- **Contrôle négatif de PCR:** À vérifier selon échantillons témoins
+- **Taux d'annotation:** `r round((metrics$annotees / metrics$brutes) * 100, 1)`% des séquences brutes (`r round((metrics$annotees / metrics$chimeres) * 100, 1)`% après élimination des chimères)
+
+# Ratios et taux de perte
+
+## Perte de séquences par étape
+
+```{r}
+#| label: tbl-loss
+#| tbl-cap: "Perte de séquences à chaque étape du pipeline"
+
+# Calculate losses
+loss_data <- data.frame(
+  Etape = c(
+    "Trimming",
+    "Merge",
+    "Split",
+    "Chimères",
+    "Annotation"
+  ),
+  Perte_sequences = c(
+    metrics$brutes - metrics$trimmed,
+    metrics$trimmed - metrics$merged,
+    metrics$merged - metrics$split,
+    metrics$split - metrics$chimeres,
+    metrics$chimeres - metrics$annotees
+  )
+) |>
+  dplyr::mutate(
+    Perte_pct = round((Perte_sequences / metrics$brutes) * 100, 1),
+    Perte_sequences_format = format(Perte_sequences, big.mark = " ")
+  ) |>
+  dplyr::select(Etape, Perte_sequences_format, Perte_pct)
+
+# Add total loss
+total_loss <- data.frame(
+  Etape = "**Perte totale**",
+  Perte_sequences_format = format(metrics$brutes - metrics$annotees, big.mark = " "),
+  Perte_pct = round(((metrics$brutes - metrics$annotees) / metrics$brutes) * 100, 1)
+)
+
+loss_table <- rbind(loss_data, total_loss)
+
+knitr::kable(
+  loss_table,
+  col.names = c("Étape", "Séquences perdues", "% du total initial")
+)
+```
+
+## Efficacité d'annotation
+
+- **Taux de rétention global:** `r round((metrics$annotees / metrics$brutes) * 100, 1)`% des séquences initiales
+- **Séquences annotées après filtres:** `r round((metrics$annotees / metrics$chimeres) * 100, 1)`% des séquences post-chimères
+
+# Statistiques par échantillon
+
+## Profondeur de séquençage moyenne
+
+- **Séquences brutes par échantillon:** ~`r format(round(metrics$brutes / stats$samples), big.mark = " ")` séquences/échantillon
+- **Séquences annotées par échantillon:** ~`r format(round(metrics$annotees / stats$samples), big.mark = " ")` séquences/échantillon
+
+## Diversité détectée
+
+- **Ratio espèces/échantillons:** `r round(stats$single_species / stats$samples, 2)` espèces par échantillon (moyenne)
+
+# Contrôles qualité
+
+## Vérification
+
+- **Gel d'agarose:** 1.5% utilisé pour vérifier l'absence de contamination
+- **Quantification:** Ultra High Sensitivity dsDNA Quantitation kit (AccuClear) avec Agilent Biotek Synergy LX
+- **Distribution taille fragments:** Agilent 2100 Bioanalyzer
+
+## Contamination
+
+À vérifier selon les échantillons témoins fournis dans l'analyse.
+
+# Liste des espèces détectées
+
+```{r}
+#| label: tbl-species
+#| tbl-cap: "Liste des espèces détectées avec nombre total de lectures"
+
+# Calculate total reads per species
+species_summary <- single_hits |>
+  dplyr::mutate(
+    Total_reads = rowSums(dplyr::select(single_hits, dplyr::all_of(params$samples_ids)), na.rm = TRUE)
+  ) |>
+  dplyr::select(Group, Species, Total_reads) |>
+  dplyr::arrange(desc(Total_reads))
+
+knitr::kable(
+  species_summary,
+  col.names = c("Groupe", "Espèce", "Total lectures"),
+  format.args = list(big.mark = " ")
+)
+```
+
+# Notes importantes
+
+## Limitations méthodologiques
+
+- Les résultats ne sont pas garantis car l'extraction n'a pas été effectuée dans le laboratoire
+- Certaines espèces rares peuvent ne pas être détectées
+- Présence possible de séquences ambiguës (Multiple Hits) pour certaines espèces
+- Les amorces 12S peuvent détecter d'autres espèces que les poissons (résultats indicatifs)
+
+## Interprétation quantitative
+
+- Les données 12S MiFish reflètent l'abondance relative des espèces
+- L'interprétation en abondance absolue doit rester prudente
+- Approche complémentaire aux observations de terrain
+
+# Résumé des métriques clés
+
+```{r}
+#| label: tbl-summary
+#| tbl-cap: "Résumé des métriques clés de l'analyse 12S"
+
+summary_data <- data.frame(
+  Metrique = c(
+    "Échantillons analysés",
+    "Séquences brutes",
+    "Séquences finales annotées",
+    "Taux de rétention",
+    "Espèces détectées",
+    "Groupes ambigus",
+    "Lectures espèce unique",
+    "Lectures multi-espèces"
+  ),
+  Valeur = c(
+    as.character(stats$samples),
+    format(metrics$brutes, big.mark = " "),
+    format(metrics$annotees, big.mark = " "),
+    paste0(round((metrics$annotees / metrics$brutes) * 100, 1), "%"),
+    as.character(stats$single_species),
+    as.character(stats$multi_groups),
+    paste0(format(stats$single_reads, big.mark = " "), " (", stats$single_pct, "%)"),
+    paste0(format(stats$multi_reads, big.mark = " "), " (", stats$multi_pct, "%)")
+  )
+)
+
+knitr::kable(summary_data, col.names = c("Métrique", "Valeur"))
+```
+
+---
+
+*Rapport généré automatiquement par barqueReport - `r format(Sys.time(), "%Y-%m-%d %H:%M:%S")`*

@@ -3,6 +3,7 @@
 export(barque_summary_stats)
 export(convert_province_codes)
 export(fetch_natserv_info)
+export(generate_client_report)
 export(generate_metabarcoding_report)
 export(illumina_summary_stats)
 export(load_barque_data)

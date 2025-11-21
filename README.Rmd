@@ -34,9 +34,9 @@ remotes::install_github("taq-community/barqueReport")
 
 ## Quick Start
 
-### Generate a Metabarcoding Report
+### Generate a Comprehensive Metabarcoding Report (HTML)
 
-The main function generates an interactive HTML report from barque pipeline output:
+Generate an interactive HTML report with detailed analysis and visualizations:
 
 ```{r eval=FALSE}
 library(barqueReport)
@@ -60,6 +60,41 @@ generate_metabarcoding_report(
   illumina_quality_file = "/path/to/Quality_Metrics.csv"
 )
 ```
+
+### Generate a Client Report (PDF)
+
+Generate a professional PDF document with custom cover page focused on 12S analysis for client delivery:
+
+```{r eval=FALSE}
+library(barqueReport)
+
+# Generate client report with project metadata
+generate_client_report(
+  barque_output_folder = "/path/to/barque/12_results",
+  samples_ids = c("ST1", "ST2", "ST3", "ST4", "ST5"),
+  client_name = "Valérie Langlois",
+  geographic_region = "Province du Québec",
+  target_species = "Espèces aquatiques (poissons)",
+  sample_type = "ADN extrait",
+  lab_author = "Julie Couillard",
+  bioinfo_author = "Steve Vissault",
+  report_author = "Tuan Ahn To",
+  output_file = "client_report.pdf"
+)
+```
+
+This generates a PDF document with:
+
+- **Custom cover page** with background image (automatically detected from `inst/images/cover.jpg|png|pdf`)
+- Project information and metadata
+- Laboratory methods and parameters
+- Bioinformatics pipeline configuration
+- Sequencing metrics and statistics
+- Species identification results
+- Quality control information
+- Detailed species list with read counts
+
+**Note:** To use a custom cover image, place your image file (JPG, PNG, or PDF) at `inst/images/cover.[jpg|png|pdf]` in the package directory. If no image is found, a default gradient background will be used.
 
 ### Process Species Information
 

@@ -52,3 +52,5 @@ docs
 # Generated barque report
 barque_report_*
 *.html
+
+*.svg
