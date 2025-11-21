@@ -65,9 +65,9 @@
 <h2 id="quick-start">Quick Start<a class="anchor" aria-label="anchor" href="#quick-start"></a>
 </h2>
 <div class="section level3">
-<h3 id="generate-a-metabarcoding-report">Generate a Metabarcoding Report<a class="anchor" aria-label="anchor" href="#generate-a-metabarcoding-report"></a>
+<h3 id="generate-a-comprehensive-metabarcoding-report-html">Generate a Comprehensive Metabarcoding Report (HTML)<a class="anchor" aria-label="anchor" href="#generate-a-comprehensive-metabarcoding-report-html"></a>
 </h3>
-<p>The main function generates an interactive HTML report from barque pipeline output:</p>
+<p>Generate an interactive HTML report with detailed analysis and visualizations:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">barqueReport</span><span class="op">)</span></span>
 <span></span>
@@ -91,10 +91,44 @@
 <span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
+<h3 id="generate-a-client-report-pdf">Generate a Client Report (PDF)<a class="anchor" aria-label="anchor" href="#generate-a-client-report-pdf"></a>
+</h3>
+<p>Generate a professional PDF document with custom cover page focused on 12S analysis for client delivery:</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">barqueReport</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Generate client report with project metadata</span></span>
+<span><span class="fu"><a href="reference/generate_client_report.html">generate_client_report</a></span><span class="op">(</span></span>
+<span>  barque_output_folder <span class="op">=</span> <span class="st">"/path/to/barque/12_results"</span>,</span>
+<span>  samples_ids <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ST1"</span>, <span class="st">"ST2"</span>, <span class="st">"ST3"</span>, <span class="st">"ST4"</span>, <span class="st">"ST5"</span><span class="op">)</span>,</span>
+<span>  client_name <span class="op">=</span> <span class="st">"Valérie Langlois"</span>,</span>
+<span>  geographic_region <span class="op">=</span> <span class="st">"Province du Québec"</span>,</span>
+<span>  target_species <span class="op">=</span> <span class="st">"Espèces aquatiques (poissons)"</span>,</span>
+<span>  sample_type <span class="op">=</span> <span class="st">"ADN extrait"</span>,</span>
+<span>  lab_author <span class="op">=</span> <span class="st">"Julie Couillard"</span>,</span>
+<span>  bioinfo_author <span class="op">=</span> <span class="st">"Steve Vissault"</span>,</span>
+<span>  report_author <span class="op">=</span> <span class="st">"Tuan Ahn To"</span>,</span>
+<span>  output_file <span class="op">=</span> <span class="st">"client_report.pdf"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<p>This generates a PDF document with:</p>
+<ul>
+<li>
+<strong>Custom cover page</strong> with background image (automatically detected from <code>inst/images/cover.jpg|png|pdf</code>)</li>
+<li>Project information and metadata</li>
+<li>Laboratory methods and parameters</li>
+<li>Bioinformatics pipeline configuration</li>
+<li>Sequencing metrics and statistics</li>
+<li>Species identification results</li>
+<li>Quality control information</li>
+<li>Detailed species list with read counts</li>
+</ul>
+<p><strong>Note:</strong> To use a custom cover image, place your image file (JPG, PNG, or PDF) at <code>inst/images/cover.[jpg|png|pdf]</code> in the package directory. If no image is found, a default gradient background will be used.</p>
+</div>
+<div class="section level3">
 <h3 id="process-species-information">Process Species Information<a class="anchor" aria-label="anchor" href="#process-species-information"></a>
 </h3>
 <p>Enhance species data with taxonomic and conservation information:</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Load your species list</span></span>
 <span><span class="va">species_list</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Salmo trutta"</span>, <span class="st">"Oncorhynchus mykiss"</span>, <span class="st">"Perca flavescens"</span><span class="op">)</span></span>
 <span></span>
@@ -159,7 +193,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer>

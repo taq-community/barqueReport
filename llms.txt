@@ -1,0 +1,136 @@
+# barqueReport
+
+## Installation
+
+### Installing barqueReport
+
+You can install the development version of barqueReport from
+[GitHub](https://github.com/) with:
+
+``` r
+install.packages("remotes")
+remotes::install_github("taq-community/barqueReport")
+```
+
+## Quick Start
+
+### Generate a Comprehensive Metabarcoding Report (HTML)
+
+Generate an interactive HTML report with detailed analysis and
+visualizations:
+
+``` r
+library(barqueReport)
+
+# Interactive file selection (recommended for beginners)
+generate_metabarcoding_report(
+  barque_output_folder = choose.dir(),  # Select barque output folder
+  samples_ids = c("ST1", "ST2", "ST3", "ST4"),
+  title = "Lake Superior Study",
+  subtitle = "",
+  author = "Steve Vissault, Julie Couillard & Tuan Ahn To",
+  illumina_quality_file = file.choose(),  # Select Quality_Metrics.csv file
+  blank_lab = "LAB_BLANK",
+  blank_field = "FIELD_BLANK"
+)
+
+# Alternative: specify paths directly
+generate_metabarcoding_report(
+  barque_output_folder = "/path/to/barque/output",
+  samples_ids = c("ST1", "ST2", "ST3", "ST4"),
+  illumina_quality_file = "/path/to/Quality_Metrics.csv"
+)
+```
+
+### Generate a Client Report (PDF)
+
+Generate a professional PDF document with custom cover page focused on
+12S analysis for client delivery:
+
+``` r
+library(barqueReport)
+
+# Generate client report with project metadata
+generate_client_report(
+  barque_output_folder = "/path/to/barque/12_results",
+  samples_ids = c("ST1", "ST2", "ST3", "ST4", "ST5"),
+  client_name = "Valérie Langlois",
+  geographic_region = "Province du Québec",
+  target_species = "Espèces aquatiques (poissons)",
+  sample_type = "ADN extrait",
+  lab_author = "Julie Couillard",
+  bioinfo_author = "Steve Vissault",
+  report_author = "Tuan Ahn To",
+  output_file = "client_report.pdf"
+)
+```
+
+This generates a PDF document with:
+
+- **Custom cover page** with background image (automatically detected
+  from `inst/images/cover.jpg|png|pdf`)
+- Project information and metadata
+- Laboratory methods and parameters
+- Bioinformatics pipeline configuration
+- Sequencing metrics and statistics
+- Species identification results
+- Quality control information
+- Detailed species list with read counts
+
+**Note:** To use a custom cover image, place your image file (JPG, PNG,
+or PDF) at `inst/images/cover.[jpg|png|pdf]` in the package directory.
+If no image is found, a default gradient background will be used.
+
+### Process Species Information
+
+Enhance species data with taxonomic and conservation information:
+
+``` r
+# Load your species list
+species_list <- c("Salmo trutta", "Oncorhynchus mykiss", "Perca flavescens")
+
+# Fetch comprehensive species information
+enhanced_species <- process_species_info(species_list)
+
+# View the results
+head(enhanced_species)
+```
+
+What does this function?
+
+- Fetches conservation status from NatureServe Canada
+- Retrieves common names from ITIS (French and English)
+- Adds links to GBIF, Catalogue of Life, and ITIS databases
+- Creates formatted species names with external links
+
+## File Structure Requirements
+
+Your barque output folder should be the `12_results` folder produce by
+barque. For Illumina quality analysis, provide the `Quality_Metrics.csv`
+file from your sequencer.
+
+# Package index
+
+## All functions
+
+- [`barque_summary_stats()`](barque_summary_stats.md) : Calculate
+  Summary Statistics
+- [`convert_province_codes()`](convert_province_codes.md) : Convert
+  Canadian Province Codes to Full Names
+- [`fetch_natserv_info()`](fetch_natserv_info.md) : Fetch NatureServe
+  Information for Species
+- [`generate_client_report()`](generate_client_report.md) : Generate
+  Client Report (PDF)
+- [`generate_metabarcoding_report()`](generate_metabarcoding_report.md)
+  : Generate Metabarcoding Report
+- [`illumina_summary_stats()`](illumina_summary_stats.md) : Calculate
+  Illumina Summary Statistics
+- [`load_barque_data()`](load_barque_data.md) : Load and Process Barque
+  Output Data
+- [`load_dropout_data()`](load_dropout_data.md) : Load and Process
+  Sequence Dropout Data
+- [`process_species_info()`](process_species_info.md) : Process Species
+  Information from Multiple Sources
+- [`province_codes`](province_codes.md) : Canadian Province Code Lookup
+  Table
+
