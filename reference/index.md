@@ -2,6 +2,8 @@
 
 ## All functions
 
+- [`barque_species()`](barque_species.md) : Extract Species List from
+  Barque Output
 - [`barque_summary_stats()`](barque_summary_stats.md) : Calculate
   Summary Statistics
 - [`convert_province_codes()`](convert_province_codes.md) : Convert
