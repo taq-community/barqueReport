@@ -4,12 +4,13 @@ subtitle: ""
 date: today
 params:
   barque_output_folder: "/home/steve/Documents/git/barque/12_results"
+  config_file: "/home/steve/Documents/git/barque/99_logfiles/20251120_181640_barque_config.sh"
+  primer_file: "/home/steve/Documents/git/barque/99_logfiles/20251120_181640_primers.csv"
   samples_ids: ["M1", "M2", "M3", "M4", "M5"]
   title_short: "Rapport 12S"
   client_name: ""
-  sample_type: "ADN extrait"
   geographic_region: ""
-  target_species: "Espèces aquatiques (poissons)"
+  sampling_date: ""
   lab_author: ""
   bioinfo_author: ""
   report_author: ""
@@ -32,6 +33,7 @@ format:
     include-in-header:
       text: |
         \usepackage[french]{babel}
+        \usepackage{parskip}
         \definecolor{customblue}{HTML}{3a6881}
         \hypersetup{linkcolor=customblue, urlcolor=customblue, citecolor=customblue}
 execute:
@@ -44,6 +46,8 @@ execute:
 library(dplyr)
 library(readr)
 library(knitr)
+library(kableExtra)
+library(ggplot2)
 
 # Load barque data
 barque_data <- barqueReport::load_barque_data(params$barque_output_folder, params$samples_ids)
@@ -54,75 +58,10 @@ multi_hits <- barque_data$multi_hits
 stats <- barqueReport::barque_summary_stats(single_hits, multi_hits, params$samples_ids)
 
 # Load dropout data
-dropout_data <- readr::read_csv(file.path(params$barque_output_folder, "sequence_dropout.csv")) |>
+dropout_data <- readr::read_csv(file.path(params$barque_output_folder, "sequence_dropout.csv"), show_col_types = FALSE) |>
   dplyr::filter(Sample %in% params$samples_ids)
-```
 
-# Informations sur le projet
-
-**Client:** `r params$client_name`
-**Date du rapport:** `r format(Sys.Date(), "%d %B %Y")`
-
-## Échantillons
-
-- **Nombre d'échantillons pour analyse 12S:** `r stats$samples` échantillons
-- **Type d'échantillons fournis:** `r params$sample_type`
-- **Région géographique:** `r params$geographic_region`
-- **Espèces ciblées:** `r params$target_species`
-
-# Paramètres de méthode de laboratoire
-
-## Métagénomique - Amorces utilisées
-
-**12S:**
-
-- Type: MiFish-U-F et U-R (Miya et al. 2015)
-- Taille de l'amplicon: 174 bp
-- Nombre de cycles PCR: 35
-
-## Paramètres PCR
-
-- **Type de PCR:** Approche avec combinaison unique de 2 barcodes de 8bp
-- **Dilution:** Aucune dilution
-- **Volume d'ADN utilisé:** 3 µl par réplicat de PCR
-- **Réplicats techniques par échantillon:** 5 réplicats
-- **Témoin positif:** Aucun
-- **Témoin négatif:** 1 témoin négatif de PCR par échantillon testé + 1 témoin négatif de mastermix
-
-## Séquençage
-
-- **Séquenceur:** AVITI de Element Bioscience
-- **Kit:** 300 sequencing kit (2x300)
-
-# Paramètres bio-informatiques
-
-## Suite d'analyse
-
-- **Logiciel:** Barque (<https://github.com/enormandeau/barque>)
-
-## Bases de données
-
-- **12S:** Base de données Barque (MitoFish, GenBank + banque interne)
-
-## Seuils et filtres
-
-- **Minimum de séquences par espèce:**
-  - 10 séquences dans un échantillon
-  - 20 séquences total sur le projet
-- **Seuil de filtrage:** Séquences < 1/10,000 de l'échantillon sont enlevées
-- **Similarité minimale pour identification:** 97%
-
-# Résultats 12S
-
-## Métriques de séquençage
-
-```{r}
-#| label: tbl-sequencing
-#| tbl-cap: "Métriques de séquençage par étape du pipeline"
-
-# Calculate metrics from dropout data
-total_samples <- dropout_data |> dplyr::pull(Sample) |> unique() |> length()
-
+# Calculate metrics
 metrics <- dropout_data |>
   dplyr::summarise(
     brutes = sum(`04_data`, na.rm = TRUE),
@@ -133,33 +72,128 @@ metrics <- dropout_data |>
     annotees = sum(`12_results`, na.rm = TRUE)
   )
 
-# Create summary table
-data.frame(
-  Etape = c(
-    "Total de séquences brutes",
-    "Après trimming",
-    "Après merge",
-    "Après split",
-    "Après élimination des chimères",
-    "Total annotées"
-  ),
-  Sequences = c(
-    format(metrics$brutes, big.mark = " "),
-    format(metrics$trimmed, big.mark = " "),
-    format(metrics$merged, big.mark = " "),
-    format(metrics$split, big.mark = " "),
-    format(metrics$chimeres, big.mark = " "),
-    format(metrics$annotees, big.mark = " ")
-  )
-) |>
-  knitr::kable(col.names = c("Étape", "Nombre de séquences"))
+# Extract config values
+config_lines <- readLines(params$config_file)
+
+get_config <- function(param) {
+  line <- grep(paste0("^", param, "="), config_lines, value = TRUE)
+  value <- gsub("^[^=]+=([0-9.]+).*", "\\1", line)
+  as.numeric(value)
+}
+
+config <- list(
+  min_hits_sample = get_config("MIN_HITS_SAMPLE"),
+  min_hits_experiment = get_config("MIN_HITS_EXPERIMENT")
+)
+
+# Extract primer properties (header is first line with #, data is first line without #)
+primer_lines <- readLines(params$primer_file)
+primer_header <- strsplit(sub("^#", "", primer_lines[1]), ",")[[1]]
+primer <- read_csv(params$primer_file, comment = "#", col_names = primer_header, show_col_types = FALSE) |>
+  as.list()
 ```
 
-## Lectures écartées
+# Information sur le projet
+
+Ce rapport présente les résultats de l'analyse métagénomique 12S réalisée pour `r params$client_name` dans la région de `r params$geographic_region`. L'objectif de cette étude est l'identification de la diversité des espèces aquatiques. L'échantillonnage a été réalisé par `r params$client_name` dans `r params$region_geographique` en `r params$sampling_date`. Au total, `r stats$samples` échantillons ont été analysés pour le marqueur 12S (`r paste(params$samples_ids, collapse = ", ")`).
+
+# Méthodes & Résultats
+
+## Métagénomique en laboratoire
+
+L'analyse utilise des amroces 12S MiFish-U-F et U-R (Miya et al. 2015), avec une taille d'amplicon de 174 bp. L'approche PCR repose sur une combinaison unique de 2 barcodes de 8 bp. Aucune dilution n'est effectuée, et 3 µl d'ADN sont utilisés par réplicat de PCR. Cinq réplicats techniques sont réalisés par échantillon testé, avec 35 cycles PCR. Le séquençage est effectué sur MiSeq i100, Illumina Inc.
+
+## Analyse bio-informatique
+
+Le post-traitement des données séquencés est effectué avec Barque (https://github.com/enormandeau/barque). Le pipeline Barque traite les séquences en plusieurs étapes successives. Les séquences brutes obtenues du séquenceur passent d'abord par une étape de *trimming* pour retirer les amorces et les portions de mauvaise qualité. Ensuite, les lectures 3" et 5" sont combinées (*merge*) pour reconstituer l'amplicon complet. L'étape de *split* permet de classifier les amplicons selon les marqueurs ciblés afin de conserver ceux d'une longueur supérieure à `r primer$MinAmpliconSize` et inférieure à `r primer$MaxAmpliconSize`. Les séquences chimériques, qui sont des artefacts de PCR, sont ensuite éliminées.
+
+
+```{r}
+#| label: tbl-results-summary
+#| tbl-cap: "Résumé de l'analyse métagénomique 12S"
+
+results_data <- data.frame(
+  Parametre = c(
+    "Nombre total de séquences",
+    "Nombre total de séquences annotées",
+    "Nombre d'espèces détectées",
+    "Nombre de groupes ambigus (Multiple Hits)",
+    "Taux d'annotation"
+  ),
+  Valeur = c(
+    format(metrics$brutes, big.mark = " "),
+    format(metrics$annotees, big.mark = " "),
+    as.character(stats$single_species),
+    as.character(stats$multi_groups),
+    paste0(round((metrics$annotees / metrics$brutes) * 100, 1), "% des séquences brutes")
+  )
+)
+
+knitr::kable(results_data, col.names = c("", ""))
+```
+
+
+```{r}
+#| label: tbl-sequencing-steps
+#| tbl-cap: "Tableau du nombre de lectures écartées lors du post-traitement des données de séquençage par le pipeline Barque"
+
+# Prepare data with samples in rows and steps in columns
+steps <- c("04_data", "05_trimmed", "06_merged", "07_split_amplicons", "08_chimeras", "12_results")
+step_labels <- c("Brutes", "Trimming", "Merge", "Split", "Chimères", "Annotées")
+
+sequencing_data <- data.frame(Sample = character(), stringsAsFactors = FALSE)
+
+for (sample_id in params$samples_ids) {
+  sample_dropout <- dropout_data |> dplyr::filter(Sample == sample_id)
+  values <- c(
+    sample_dropout$`04_data`,
+    sample_dropout$`05_trimmed`,
+    sample_dropout$`06_merged`,
+    sample_dropout$`07_split_amplicons`,
+    sample_dropout$`08_chimeras`,
+    sample_dropout$`12_results`
+  )
+  brutes <- values[1]
+  row_data <- c(format(brutes, big.mark = " "), sapply(2:length(values), function(i) {
+    diff <- values[i-1] - values[i]
+    pct <- round(diff / brutes * 100, 1)
+    paste0(format(values[i], big.mark = " "), " (-", pct, "%)")
+  }))
+  sequencing_data <- rbind(sequencing_data, c(sample_id, row_data))
+}
+
+colnames(sequencing_data) <- c("Échantillon", step_labels)
+
+# Add total row
+total_values <- c(
+  sum(dropout_data$`04_data`),
+  sum(dropout_data$`05_trimmed`),
+  sum(dropout_data$`06_merged`),
+  sum(dropout_data$`07_split_amplicons`),
+  sum(dropout_data$`08_chimeras`),
+  sum(dropout_data$`12_results`)
+)
+total_brutes <- total_values[1]
+total_row <- c("Total", format(total_brutes, big.mark = " "), sapply(2:length(total_values), function(i) {
+  diff <- total_values[i-1] - total_values[i]
+  pct <- round(diff / total_brutes * 100, 1)
+  paste0(format(total_values[i], big.mark = " "), " (-", pct, "%)")
+}))
+sequencing_data <- rbind(sequencing_data, total_row)
+
+knitr::kable(sequencing_data, format = "latex", booktabs = TRUE) |>
+  kableExtra::kable_styling(latex_options = c("scale_down", "hold_position")) |>
+  kableExtra::row_spec(nrow(sequencing_data) - 1, extra_latex_after = "\\midrule")
+```
+
+ Finalement, les séquences restantes sont annotées en les assignant à une espèce présente dans la base de données contenue dans le pipeline BARQUE. Cette base de données est constituée des séquences de référence de MitoFish (Iwasaki et al. 2013), GenBank ainsi que des séquences de référence de l'Institut de biologie intégrative et des systèmes (IBIS) à Laval.  Pour obtenir une identification positive, le niveau de similarité minimale entre la séquence obtenue et celles présentes dans la base de données de référence a été fixé à `r primer$SimilSpecies * 100`%.
+
+Les espèces qui n'ont pas fait l'objet d'une detection d'au moins `r config$min_hits_sample` séquences dans un échantillon et au moins `r config$min_hits_experiment` séquences sur l'ensemble des échantillons sont retirées de l'analyse afin de limiter les erreurs d'identification (Brown et al., 2015; Schnell, Bohmann, & Gilbert, 2015).
+
 
 ```{r}
 #| label: fig-reads-filtered-out
-#| fig-cap: "Nombre de lectures écartées lors du post-traitement des données de séquençage"
+#| fig-cap: "Figure du nombre de lectures écartées lors du post-traitement des données de séquençage par le pipeline Barque"
 #| fig-width: 10
 #| fig-height: 6
 
@@ -207,154 +241,104 @@ ggplot2::ggplot(dropout_long, ggplot2::aes(x = stats::reorder(step_label, step_o
   ggplot2::guides(color = ggplot2::guide_legend(override.aes = list(size = 3)))
 ```
 
-## Résultats d'identification
-
-- **Nombre d'espèces de poissons détectées:** `r stats$single_species`
-- **Nombre de groupes ambigus (Multiple Hits):** `r stats$multi_groups`
-- **Contrôle négatif de PCR:** À vérifier selon échantillons témoins
-- **Taux d'annotation:** `r round((metrics$annotees / metrics$brutes) * 100, 1)`% des séquences brutes (`r round((metrics$annotees / metrics$chimeres) * 100, 1)`% après élimination des chimères)
-
-# Ratios et taux de perte
-
-## Perte de séquences par étape
-
-```{r}
-#| label: tbl-loss
-#| tbl-cap: "Perte de séquences à chaque étape du pipeline"
-
-# Calculate losses
-loss_data <- data.frame(
-  Etape = c(
-    "Trimming",
-    "Merge",
-    "Split",
-    "Chimères",
-    "Annotation"
-  ),
-  Perte_sequences = c(
-    metrics$brutes - metrics$trimmed,
-    metrics$trimmed - metrics$merged,
-    metrics$merged - metrics$split,
-    metrics$split - metrics$chimeres,
-    metrics$chimeres - metrics$annotees
-  )
-) |>
-  dplyr::mutate(
-    Perte_pct = round((Perte_sequences / metrics$brutes) * 100, 1),
-    Perte_sequences_format = format(Perte_sequences, big.mark = " ")
-  ) |>
-  dplyr::select(Etape, Perte_sequences_format, Perte_pct)
-
-# Add total loss
-total_loss <- data.frame(
-  Etape = "**Perte totale**",
-  Perte_sequences_format = format(metrics$brutes - metrics$annotees, big.mark = " "),
-  Perte_pct = round(((metrics$brutes - metrics$annotees) / metrics$brutes) * 100, 1)
-)
-
-loss_table <- rbind(loss_data, total_loss)
-
-knitr::kable(
-  loss_table,
-  col.names = c("Étape", "Séquences perdues", "% du total initial")
-)
-```
-
-## Efficacité d'annotation
-
-- **Taux de rétention global:** `r round((metrics$annotees / metrics$brutes) * 100, 1)`% des séquences initiales
-- **Séquences annotées après filtres:** `r round((metrics$annotees / metrics$chimeres) * 100, 1)`% des séquences post-chimères
-
-# Statistiques par échantillon
-
-## Profondeur de séquençage moyenne
-
-- **Séquences brutes par échantillon:** ~`r format(round(metrics$brutes / stats$samples), big.mark = " ")` séquences/échantillon
-- **Séquences annotées par échantillon:** ~`r format(round(metrics$annotees / stats$samples), big.mark = " ")` séquences/échantillon
-
-## Diversité détectée
-
-- **Ratio espèces/échantillons:** `r round(stats$single_species / stats$samples, 2)` espèces par échantillon (moyenne)
-
-# Contrôles qualité
-
-## Vérification
-
-- **Gel d'agarose:** 1.5% utilisé pour vérifier l'absence de contamination
-- **Quantification:** Ultra High Sensitivity dsDNA Quantitation kit (AccuClear) avec Agilent Biotek Synergy LX
-- **Distribution taille fragments:** Agilent 2100 Bioanalyzer
-
-## Contamination
-
-À vérifier selon les échantillons témoins fournis dans l'analyse.
+{{< pagebreak >}}
 
 # Liste des espèces détectées
 
 ```{r}
-#| label: tbl-species
-#| tbl-cap: "Liste des espèces détectées avec nombre total de lectures"
+#| label: tbl-species-by-sample
+#| results: asis
+#| eval: false
 
-# Calculate total reads per species
-species_summary <- single_hits |>
-  dplyr::mutate(
-    Total_reads = rowSums(dplyr::select(single_hits, dplyr::all_of(params$samples_ids)), na.rm = TRUE)
-  ) |>
-  dplyr::select(Group, Species, Total_reads) |>
-  dplyr::arrange(desc(Total_reads))
+# Generate one table per sample
+for (sample_id in params$samples_ids) {
+  sample_id = params$samples_ids[1]
+  # Filter species detected in this sample (reads > 0)
+  sample_species <- single_hits |>
+    dplyr::select(Group, Species, dplyr::all_of(sample_id)) |>
+    dplyr::rename(Reads = dplyr::all_of(sample_id)) |>
+    dplyr::filter(Reads > 0) |>
+    dplyr::arrange(desc(Reads))
 
-knitr::kable(
-  species_summary,
-  col.names = c("Groupe", "Espèce", "Total lectures"),
-  format.args = list(big.mark = " ")
-)
+  # Print section header for this sample
+  cat("\n\n## Échantillon : ", sample_id, "\n\n", sep = "")
+
+  if (nrow(sample_species) > 0) {
+    # Print the table
+    print(knitr::kable(
+      sample_species,
+      col.names = c("Groupe", "Espèce", "Lectures"),
+      format.args = list(big.mark = " "),
+      caption = paste0("Espèces détectées dans l'échantillon ", sample_id)
+    ))
+  } else {
+    cat("*Aucune espèce détectée dans cet échantillon.*\n\n")
+  }
+
+  cat("\n\n")
+}
 ```
 
-# Notes importantes
+{{< pagebreak >}}
 
-## Limitations méthodologiques
+# Conclusion
 
-- Les résultats ne sont pas garantis car l'extraction n'a pas été effectuée dans le laboratoire
-- Certaines espèces rares peuvent ne pas être détectées
-- Présence possible de séquences ambiguës (Multiple Hits) pour certaines espèces
-- Les amorces 12S peuvent détecter d'autres espèces que les poissons (résultats indicatifs)
 
-## Interprétation quantitative
+## Avertissements – Limites de l'approche
 
-- Les données 12S MiFish reflètent l'abondance relative des espèces
-- L'interprétation en abondance absolue doit rester prudente
-- Approche complémentaire aux observations de terrain
+Il est important de considérer les limites de ce genre d’étude en ce qui a trait aux espèces détectées. Certaines espèces ne peuvent avoir été détectées par cette méthode étant donné leur rareté (faible présence/absence) ou parce qu’elles n’étaient pas présentes à proximité des sites d’échantillonnage.
 
-# Résumé des métriques clés
+Certaines séquences d’ADN 12S ambigües (Multiple hits) sont identifiées comme appartenant à plus qu’une espèce.
+Des espèces autres que les poissons ont été détectées avec les amorces 12S. Par contre, comme les amorces ne sont pas spécifiques à ces autres espèces et que la base de données n’est pas faite pour les autres espèces, les résultats obtenus ne sont là qu’à titre indicatif.
 
-```{r}
-#| label: tbl-summary
-#| tbl-cap: "Résumé des métriques clés de l'analyse 12S"
+De plus, nous suggérons fortement de tenir compte d’un seuil du nombre de séquences limites pour la détection d’une espèce. Ce seuil est déterminé de manière à tenir compte des erreurs et/ou artefacts de séquençage (Brown et al. 2015) et des séquences mal attribuées aux différents échantillons (« index jumps-bleeding ») – Schnell et al 2015.
 
-summary_data <- data.frame(
-  Metrique = c(
-    "Échantillons analysés",
-    "Séquences brutes",
-    "Séquences finales annotées",
-    "Taux de rétention",
-    "Espèces détectées",
-    "Groupes ambigus",
-    "Lectures espèce unique",
-    "Lectures multi-espèces"
-  ),
-  Valeur = c(
-    as.character(stats$samples),
-    format(metrics$brutes, big.mark = " "),
-    format(metrics$annotees, big.mark = " "),
-    paste0(round((metrics$annotees / metrics$brutes) * 100, 1), "%"),
-    as.character(stats$single_species),
-    as.character(stats$multi_groups),
-    paste0(format(stats$single_reads, big.mark = " "), " (", stats$single_pct, "%)"),
-    paste0(format(stats$multi_reads, big.mark = " "), " (", stats$multi_pct, "%)")
-  )
-)
+{{< pagebreak >}}
 
-knitr::kable(summary_data, col.names = c("Métrique", "Valeur"))
-```
+# Annexes
+
+## Annexe 1 : Procédures de prévention de la contamination
+
+Les réactions de PCR sont effectuées dans un laboratoire dédié à la PCR de métagénomique pour les échantillons ADN environnemental.
+
+L'ensemble du matériel est préalablement décontaminé avec une solution d'hypochlorite de sodium dilué et rincé à l'eau Milli-Q.
+
+Le personnel porte en tout temps sarrau propre et gants stériles.
+
+Le personnel est formé pour la décontamination et les exigences que demande le travail avec les échantillons d'ADN environnemental.
+
+## Annexe 2 : Protocole de métagénomique
+
+Le protocole utilisé est décrit dans Berger et al. 2020.
+
+L'approche utilisée est l'approche 'unique dual-indexing' avec deux barcodes de 8 paires de bases permettant d'identifier les échantillons. Cet identifiant permet de regrouper les échantillons de diverses stations et de les séquencer sans perdre l'information individuelle de chaque échantillon. Afin de vérifier la présence possible de contamination lors de la PCR, un contrôle négatif de PCR est ajouté pour chaque amorce-identifiant.
+
+Chaque réaction PCR pour le 12S comprend 12,5 µl de Qiagen MasterMix, 2 µl de chaque amorce (10 µM), 5,5 µl diH20 et 3 µl d'ADNe. L'amplification suit le programme suivant : 15 minutes à 95°C, 35 cycles d'amplification (30s à 94°C, 90s à 65°C, 60s à 72°C) et une élongation finale de 10 minutes à 72°C.
+
+Le résultat des PCRs et l'absence de contamination sont vérifiés par gel d'agarose 1.5%.
+
+Une fraction de chaque échantillon amplifié et témoin négatif de mastermix test est ensuite nettoyée par billes paramagnétiques (Axygen) en suivant le protocole du fabriquant, éluée dans 35 µl d'eau et quantifiée par méthode de fluorescence à l'aide du Ultra High Sensitivity dsDNA Quantitation kit (AccuClear) avec le Agilent Biotek Synergy LX.
+
+La librairie (ensemble d'échantillons) a été préparée de façon à ce que chaque échantillon soit représenté par la même quantité d'ADN amplifié. La librairie est purifiée en utilisant le paramagnetic bead-based post-PCR clean up kit (Axygen) afin d'obtenir une profondeur de séquençage égale entre chaque site d'échantillonnage.
+
+La concentration et la distribution de la taille de fragments de la librairie sont analysées sur l'Agilent 2100 Bioanalyzer.
+
+Les échantillons ont été séquencés sur le séquenceur AVITI de Element Biosciences en utilisant le 2x300 Sequencing kit selon les instructions du manufacturier.
+
+
+# Références
+
+Berger C, Hernandez C, Laporte M, Côté G, Paradis Y, Normandeau E, Bernatchez L (2020) Fine-scale spatial structuration of fish communities within river revealed by environmental DNA metabarcoding. Environmental DNA.
+
+Boivin-Deslile D, Laporte M, Burton F, Dion R, Normandeau E, Bernatchez L (2020) Using environmental DNA (eDNA) for evaluation of freshwater fish communities: comparison with established gillnet surveys. Environmental DNA.
+
+Brown SP, Veach AM, Rigdon-Huss AR, Grond K, Lickteig SK, Lothamer K, Oliver AK, Jumpponen A (2015) Scraping the bottom of the barrel: are rare high throughput sequences artifacts? Fungal Ecology 13:221-225.
+
+Iwasaki W, Fukunaga T, Isagozawa R, Yamada K, Maeda Y, Satoh TP, Sado T, Mabuchi K, Takeshima H, Miya M, Nishida M (2013) MitoFish and MitoAnnotator: A Mitochondrial Genome Database of Fish with an Accurate and Automatic Annotation Pipeline. Molecular Biology and Evolution 30(11): 2531–2540.
+
+Miya M, Sato Y, Fukunaga T, Sado T, Poulsen JY, Sato K, Minamoto T, Yamamoto S, Yamanaka H, Araki H, Kondoh M, Iwasaki W (2015) MiFish, a set of universal PCR primers for metabarcoding environmental DNA from fishes: detection of more than 230 subtropical marine species. R.Soc.Open sci. 2(7).
+
+Schnell IB, Bohmann K, Gilbert MTP (2015) Tag jumps illuminated – reducing sequence-to-sample misidentifications in metabarcoding studies. Molecular Ecology Resources. 15: 1289-1303.
 
 ---
 

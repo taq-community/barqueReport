@@ -17,8 +17,6 @@ $for(classoption)$
 $endfor$
 ]{$if(documentclass)$$documentclass$$else$article$endif$}
 
-\usepackage{tgadventor}
-
 % Use upquote if available, for straight quotes in verbatim environments
 \IfFileExists{upquote.sty}{\usepackage{upquote}}{}
 \IfFileExists{microtype.sty}{% use microtype if available
@@ -124,48 +122,47 @@ $endif$
     }
     $endif$
 
-    \vspace*{0.15\textheight}
+    \vspace*{0.1\textheight}
 
     \begin{center}
       % Title in white
-      {\color{white}\LARGE \bfseries $title$ \par}
-      \vspace{1cm}
-
+      {\color{white}\large \bfseries $title$ \par}
       % Subtitle in white
       $if(subtitle)$
-      {\color{white}\large $subtitle$ \par}
-      \vspace{0.5cm}
+      {\color{white}\LARGE $subtitle$ \par}
       $endif$
 
-      \vspace{2cm}
+      \vspace{1.5cm}
 
       $if(client-name)$
-      {\color{white} \large \textbf{Échantillonnage réalisé par } \par}
-      {\color{white} \Large $client-name$} \\[0.5cm]
+      {\color{white} \normalsize \textbf{Pour } \par}
+      {\color{white} \normalsize $client-name$} \\
       $endif$
 
-      \vspace{2.5cm}
+      \vspace{1.5cm}
+
+      {\color{white} \normalsize \textbf{Réalisé par} \par}
+      {\color{white}Laboratoire de Valérie Langlois (Prof., Ph.D.) en écotoxicogénomique,\\ ADN/ARN environnemental et perturbation endocrinienne \\ INRS, 490, Rue de la Couronne, Québec, Québec G1K 9A9\par}
+      
+      \vspace{1cm}
 
       % Authorship sections
       $if(report-author)$
-      {\color{white}\normalsize \textbf{Extraction des échantillons et rédaction du rapport final réalisés par} \par}
-      \vspace{0.5cm}
+      {\color{white}\normalsize \textbf{Extraction des échantillons et rédaction du rapport} \par}
       {\color{white}\normalsize $report-author$ \par}
-      \vspace{1cm}
+      \vspace{0.5cm}
       $endif$
 
       $if(lab-author)$
       {\color{white}\normalsize \textbf{Analyse métagénomique en laboratoire} \par}
-      \vspace{0.5cm}
       {\color{white}\normalsize $lab-author$ \par}
-      \vspace{1cm}
+      \vspace{0.5cm}
       $endif$
 
       $if(bioinfo-author)$
       {\color{white}\normalsize \textbf{Analyses bio-informatiques} \par}
-      \vspace{0.5cm}
       {\color{white}\normalsize $bioinfo-author$ \par}
-      \vspace{1cm}
+      \vspace{0.5cm}
       $endif$
 
       \vspace{1cm}
@@ -191,6 +188,10 @@ $endif$
 % Prevent orphans and widows
 \widowpenalty=10000
 \clubpenalty=10000
+
+% Line spacing 1.5 for the entire document
+\usepackage{setspace}
+\onehalfspacing
 
 $for(header-includes)$
 $header-includes$

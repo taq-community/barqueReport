@@ -16,10 +16,8 @@ generate_client_report(
   report_author = "",
   title_short = "Rapport 12S",
   client_name = "",
-  sample_type = "ADN extrait",
   geographic_region = "",
-  target_species = "Espèces aquatiques (poissons)",
-  open_report = TRUE
+  target_species = "Espèces aquatiques (poissons)"
 )
 }
 \arguments{
@@ -45,13 +43,9 @@ generate_client_report(
 
 \item{client_name}{Client name (default: "")}
 
-\item{sample_type}{Type of samples (default: "ADN extrait")}
-
 \item{geographic_region}{Geographic region of sampling (default: "")}
 
 \item{target_species}{Target species description (default: "Especes aquatiques (poissons)")}
-
-\item{open_report}{Logical, whether to open the report after rendering (default: TRUE)}
 }
 \value{
 Path to the generated report file

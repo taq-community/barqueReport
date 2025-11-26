@@ -105,3 +105,34 @@ load_dropout_data <- function(barque_output_folder, samples_ids) {
   
   return(dropout_long)
 }
+
+#' Extract Species List from Barque Output
+#'
+#' Extracts and cleans the species list from barque output, handling both
+#' single hits and multiple hits (where species are separated by " : ").
+#'
+#' @param path Path to the barque species table CSV file
+#'
+#' @return A data frame with columns: Group, Genus, Species (distinct values only)
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' species <- barque_species("/path/to/barque/output/12s200pb_species_table.csv")
+#' }
+barque_species <- function(path = NULL) {
+  utils::read.csv(path) |>
+    dplyr::select(Group, Genus, Species) |>
+    tidyr::separate_longer_delim(Species, delim = " : ") |>
+    dplyr::rowwise() |>
+    dplyr::mutate(
+      parts = list(if (Genus == "Hits") strsplit(Species, "_")[[1]] else c(Group, Genus, Species)),
+      Group = parts[1],
+      Genus = parts[2],
+      Species = parts[3]
+    ) |>
+    dplyr::ungroup() |>
+    dplyr::select(-parts) |>
+    dplyr::filter(Group != "Total") |>
+    dplyr::distinct()
+}

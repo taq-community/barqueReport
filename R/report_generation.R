@@ -154,7 +154,6 @@ generate_metabarcoding_report <- function(
 #' @param report_author Report writing author(s) (default: "")
 #' @param title_short Short title for headers (default: "Rapport 12S")
 #' @param client_name Client name (default: "")
-#' @param sample_type Type of samples (default: "ADN extrait")
 #' @param geographic_region Geographic region of sampling (default: "")
 #' @param target_species Target species description (default: "Especes aquatiques (poissons)")
 #'
@@ -191,7 +190,6 @@ generate_client_report <- function(
   report_author = "",
   title_short = "Rapport 12S",
   client_name = "",
-  sample_type = "ADN extrait",
   geographic_region = "",
   target_species = "Esp\u00E8ces aquatiques (poissons)"
 ) {
@@ -222,9 +220,7 @@ generate_client_report <- function(
     samples_ids = samples_ids,
     title_short = title_short,
     client_name = client_name,
-    sample_type = sample_type,
     geographic_region = geographic_region,
-    target_species = target_species,
     lab_author = lab_author,
     bioinfo_author = bioinfo_author,
     report_author = report_author
