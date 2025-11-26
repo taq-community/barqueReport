@@ -21,6 +21,8 @@ lab-author: "`r params$lab_author`"
 bioinfo-author: "`r params$bioinfo_author`"
 report-author: "`r params$report_author`"
 format:
+  docx:
+    toc: true
   pdf:
     template: template.tex
     toc: true
@@ -245,34 +247,120 @@ ggplot2::ggplot(dropout_long, ggplot2::aes(x = stats::reorder(step_label, step_o
 
 # Liste des espèces détectées
 
-```{r}
-#| label: tbl-species-by-sample
-#| results: asis
-#| eval: false
+Les détections d'espèces sont classifiées en trois niveaux de confiance basés sur le nombre de lectures de séquences d'ADN :
 
-# Generate one table per sample
+| Statut de détection | Nombre de lectures assignées | Interprétation |
+|---------------------|-------------------|----------------|
+| Confiant | > 100 lectures | Détection avec un signal d'ADN fort |
+| Probable | 10-100 lectures | Détection à confiance modérée |
+| Incertain | < 10 lectures | Détection à faible confiance, peut nécessiter une vérification supplémentaire |
+
+: Niveaux de confiance des détections {#tbl-confidence-levels}
+
+Le nombre de lectures assignées reflètent les concentrations d'ADN détectées dans l'échantillon et assignées à une espèces, mais ne sont pas directement proportionnels à l'abondance des organismes en raison des variations dans le processus d'amplification et séquencage en laboratoire, l'autoécologie des espèces et la qualité de la bases de données de références utisée.
+
+```{r}
+#| label: species-by-sample
+#| results: asis
+
+# Function to classify detection confidence
+classify_detection <- function(reads) {
+  dplyr::case_when(
+    reads > 100 ~ paste0("Confiant (", format(reads, big.mark = " "), " lectures assignées)"),
+    reads >= 10 ~ paste0("Probable (", format(reads, big.mark = " "), " lectures assignées)"),
+    TRUE ~ paste0("Incertain (", format(reads, big.mark = " "), " lectures assignées)")
+  )
+}
+
+devtools::load_all()
+barque_species <- barqueReport::barque_species(file.path(params$barque_output_folder, "12s200pb_species_table.csv")) |> 
+  dplyr::mutate(Species = paste(Genus, Species)) |> 
+  dplyr::pull(Species) |>
+  barqueReport::process_species_info()
+
+
+
+# Generate sections for each sample
 for (sample_id in params$samples_ids) {
-  sample_id = params$samples_ids[1]
-  # Filter species detected in this sample (reads > 0)
+  # Print main section header for this sample (with pagebreak)
+  cat("\n\n{{< pagebreak >}}\n\n## Échantillon : ", sample_id, "\n\n", sep = "")
+
+  # --- Subsection 1: Single hits (espèces détectées) ---
   sample_species <- single_hits |>
     dplyr::select(Group, Species, dplyr::all_of(sample_id)) |>
     dplyr::rename(Reads = dplyr::all_of(sample_id)) |>
     dplyr::filter(Reads > 0) |>
-    dplyr::arrange(desc(Reads))
+    dplyr::mutate(Statut = classify_detection(Reads)) |>
+    dplyr::arrange(desc(Reads)) |>
+    dplyr::select(Group, Species, Statut)
 
-  # Print section header for this sample
-  cat("\n\n## Échantillon : ", sample_id, "\n\n", sep = "")
+  cat("### Espèces détectées\n\n")
 
   if (nrow(sample_species) > 0) {
-    # Print the table
     print(knitr::kable(
       sample_species,
-      col.names = c("Groupe", "Espèce", "Lectures"),
-      format.args = list(big.mark = " "),
-      caption = paste0("Espèces détectées dans l'échantillon ", sample_id)
+      col.names = c("Groupe", "Espèce", "Statut")
     ))
   } else {
     cat("*Aucune espèce détectée dans cet échantillon.*\n\n")
+  }
+
+  # --- Subsection 2: Multiple hits (détections ambiguës) ---
+  # Filter out Incertain groups (reads < 10)
+  sample_multi <- multi_hits |>
+    dplyr::select(Species, dplyr::all_of(sample_id)) |>
+    dplyr::rename(Reads = dplyr::all_of(sample_id)) |>
+    dplyr::filter(Reads >= 10) |>
+    dplyr::mutate(Statut = classify_detection(Reads)) |>
+    dplyr::arrange(desc(Reads))
+
+  cat("\n\n### Détections ambiguës\n\n")
+
+  if (nrow(sample_multi) > 0) {
+    # Expand each row into multiple rows (one per species)
+    # First remove "Hits " prefix, then split by " : " delimiter
+    sample_multi_expanded <- sample_multi |>
+      dplyr::mutate(
+        group_id = dplyr::row_number(),
+        # Remove "Hits " prefix from Species
+        Species_clean = sub("^Hits ", "", Species),
+        Species_list = strsplit(Species_clean, " : ")
+      ) |>
+      tidyr::unnest(Species_list) |>
+      dplyr::group_by(group_id) |>
+      dplyr::mutate(
+        # Add group header as first row, keep Statut only for first row
+        row_num = dplyr::row_number(),
+        Statut = dplyr::if_else(row_num == 1, Statut, ""),
+        # Split species into Genus Species (format: Group_Genus_species -> Genus species)
+        Species = gsub("_", " ", sub("^[^_]+_", "", Species_list))
+      ) |>
+      dplyr::ungroup()
+
+    # Create final table with group headers
+    result_list <- list()
+    for (gid in unique(sample_multi_expanded$group_id)) {
+      group_data <- sample_multi_expanded |> dplyr::filter(group_id == gid)
+      statut_val <- group_data$Statut[1]
+      # Add group header row
+      result_list <- c(result_list, list(data.frame(
+        Species = paste0("**Groupe ", gid, "**"),
+        Statut = statut_val
+      )))
+      # Add species rows
+      result_list <- c(result_list, list(data.frame(
+        Species = group_data$Species,
+        Statut = ""
+      )))
+    }
+    sample_multi_final <- dplyr::bind_rows(result_list)
+
+    print(knitr::kable(
+      sample_multi_final,
+      col.names = c("Espèce possible", "Statut")
+    ))
+  } else {
+    cat("*Aucune détection ambiguë dans cet échantillon.*\n\n")
   }
 
   cat("\n\n")
@@ -295,42 +383,9 @@ De plus, nous suggérons fortement de tenir compte d’un seuil du nombre de sé
 
 {{< pagebreak >}}
 
-# Annexes
-
-## Annexe 1 : Procédures de prévention de la contamination
-
-Les réactions de PCR sont effectuées dans un laboratoire dédié à la PCR de métagénomique pour les échantillons ADN environnemental.
-
-L'ensemble du matériel est préalablement décontaminé avec une solution d'hypochlorite de sodium dilué et rincé à l'eau Milli-Q.
-
-Le personnel porte en tout temps sarrau propre et gants stériles.
-
-Le personnel est formé pour la décontamination et les exigences que demande le travail avec les échantillons d'ADN environnemental.
-
-## Annexe 2 : Protocole de métagénomique
-
-Le protocole utilisé est décrit dans Berger et al. 2020.
-
-L'approche utilisée est l'approche 'unique dual-indexing' avec deux barcodes de 8 paires de bases permettant d'identifier les échantillons. Cet identifiant permet de regrouper les échantillons de diverses stations et de les séquencer sans perdre l'information individuelle de chaque échantillon. Afin de vérifier la présence possible de contamination lors de la PCR, un contrôle négatif de PCR est ajouté pour chaque amorce-identifiant.
-
-Chaque réaction PCR pour le 12S comprend 12,5 µl de Qiagen MasterMix, 2 µl de chaque amorce (10 µM), 5,5 µl diH20 et 3 µl d'ADNe. L'amplification suit le programme suivant : 15 minutes à 95°C, 35 cycles d'amplification (30s à 94°C, 90s à 65°C, 60s à 72°C) et une élongation finale de 10 minutes à 72°C.
-
-Le résultat des PCRs et l'absence de contamination sont vérifiés par gel d'agarose 1.5%.
-
-Une fraction de chaque échantillon amplifié et témoin négatif de mastermix test est ensuite nettoyée par billes paramagnétiques (Axygen) en suivant le protocole du fabriquant, éluée dans 35 µl d'eau et quantifiée par méthode de fluorescence à l'aide du Ultra High Sensitivity dsDNA Quantitation kit (AccuClear) avec le Agilent Biotek Synergy LX.
-
-La librairie (ensemble d'échantillons) a été préparée de façon à ce que chaque échantillon soit représenté par la même quantité d'ADN amplifié. La librairie est purifiée en utilisant le paramagnetic bead-based post-PCR clean up kit (Axygen) afin d'obtenir une profondeur de séquençage égale entre chaque site d'échantillonnage.
-
-La concentration et la distribution de la taille de fragments de la librairie sont analysées sur l'Agilent 2100 Bioanalyzer.
-
-Les échantillons ont été séquencés sur le séquenceur AVITI de Element Biosciences en utilisant le 2x300 Sequencing kit selon les instructions du manufacturier.
-
-
 # Références
 
 Berger C, Hernandez C, Laporte M, Côté G, Paradis Y, Normandeau E, Bernatchez L (2020) Fine-scale spatial structuration of fish communities within river revealed by environmental DNA metabarcoding. Environmental DNA.
-
-Boivin-Deslile D, Laporte M, Burton F, Dion R, Normandeau E, Bernatchez L (2020) Using environmental DNA (eDNA) for evaluation of freshwater fish communities: comparison with established gillnet surveys. Environmental DNA.
 
 Brown SP, Veach AM, Rigdon-Huss AR, Grond K, Lickteig SK, Lothamer K, Oliver AK, Jumpponen A (2015) Scraping the bottom of the barrel: are rare high throughput sequences artifacts? Fungal Ecology 13:221-225.
 
@@ -340,6 +395,3 @@ Miya M, Sato Y, Fukunaga T, Sado T, Poulsen JY, Sato K, Minamoto T, Yamamoto S, 
 
 Schnell IB, Bohmann K, Gilbert MTP (2015) Tag jumps illuminated – reducing sequence-to-sample misidentifications in metabarcoding studies. Molecular Ecology Resources. 15: 1289-1303.
 
----
-
-*Rapport généré automatiquement par barqueReport - `r format(Sys.time(), "%Y-%m-%d %H:%M:%S")`*
