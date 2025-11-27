@@ -150,6 +150,29 @@
 <h2 id="file-structure-requirements">File Structure Requirements<a class="anchor" aria-label="anchor" href="#file-structure-requirements"></a>
 </h2>
 <p>Your barque output folder should be the <code>12_results</code> folder produce by barque. For Illumina quality analysis, provide the <code>Quality_Metrics.csv</code> file from your sequencer.</p>
+<div class="section level3">
+<h3 id="conservation-status-data-sources">Conservation Status Data Sources<a class="anchor" aria-label="anchor" href="#conservation-status-data-sources"></a>
+</h3>
+<p>These files should be downloaded from their respective sources and placed in <code>inst/extdata/</code>:</p>
+<ol start="4" style="list-style-type: decimal">
+<li>
+<strong>CA_especes_en_peril.csv</strong> - Canadian species at risk
+<ul>
+<li>Source: <a href="https://registre-especes.canada.ca/index-fr.html#/especes?sortBy=commonNameSort&amp;sortDirection=asc&amp;pageSize=10" class="external-link">Registre public des espèces en péril (LEP)</a>
+</li>
+<li>Contains federal species at risk designations under Canada’s Species at Risk Act (SARA/LEP)</li>
+</ul>
+</li>
+<li>
+<strong>QC_especes_en_peril.csv</strong> - Quebec species at risk
+<ul>
+<li>Source: <a href="https://www.donneesquebec.ca/recherche/dataset/liste-de-la-faune-vertebree-du-quebec/resource/73060a93-990c-4529-b87e-9aaf6772cd06" class="external-link">Liste de la faune vertébrée du Québec - Données Québec</a>
+</li>
+<li>Contains provincial species at risk under Quebec’s Loi sur les espèces menacées ou vulnérables (LEMV)</li>
+</ul>
+</li>
+</ol>
+</div>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="license">
