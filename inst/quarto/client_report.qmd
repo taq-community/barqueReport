@@ -2,14 +2,15 @@
 title: "Rapport d'Analyse Métagénomique - 12S"
 subtitle: ""
 date: today
+lang: fr
+crossref:
+  tbl-title: "Tableau"
 params:
   barque_output_folder: "/home/steve/Documents/git/barque/12_results"
   config_file: "/home/steve/Documents/git/barque/99_logfiles/20251120_181640_barque_config.sh"
   primer_file: "/home/steve/Documents/git/barque/99_logfiles/20251120_181640_primers.csv"
   samples_ids: ["M1", "M2", "M3", "M4", "M5"]
   title_short: "Rapport 12S"
-  client_name: ""
-  geographic_region: ""
   sampling_date: ""
   lab_author: ""
   bioinfo_author: ""
@@ -21,8 +22,6 @@ lab-author: "`r params$lab_author`"
 bioinfo-author: "`r params$bioinfo_author`"
 report-author: "`r params$report_author`"
 format:
-  docx:
-    toc: true
   pdf:
     template: template.tex
     toc: true
@@ -34,8 +33,6 @@ format:
     keep-tex: false
     include-in-header:
       text: |
-        \usepackage[french]{babel}
-        \usepackage{parskip}
         \definecolor{customblue}{HTML}{3a6881}
         \hypersetup{linkcolor=customblue, urlcolor=customblue, citecolor=customblue}
 execute:
@@ -97,17 +94,25 @@ primer <- read_csv(params$primer_file, comment = "#", col_names = primer_header,
 
 # Information sur le projet
 
-Ce rapport présente les résultats de l'analyse métagénomique 12S réalisée pour `r params$client_name` dans la région de `r params$geographic_region`. L'objectif de cette étude est l'identification de la diversité des espèces aquatiques. L'échantillonnage a été réalisé par `r params$client_name` dans `r params$region_geographique` en `r params$sampling_date`. Au total, `r stats$samples` échantillons ont été analysés pour le marqueur 12S (`r paste(params$samples_ids, collapse = ", ")`).
+Ce rapport présente les résultats de l'analyse métagénomique 12S réalisée pour `r params$client_name` dans la région de `r params$geographic_region`. L'objectif de cette étude est l'identification de la diversité des espèces aquatiques. L'échantillonnage a été réalisé par `r params$client_name` dans `r params$geographic_region` en `r params$sampling_date`. Au total, `r stats$samples` échantillons ont été analysés pour le marqueur 12S (`r paste(params$samples_ids, collapse = ", ")`).
 
 # Méthodes & Résultats
 
+## Extraction d'ADN
+
+### Méthode d'extraction d'ADNe
+
+La méthode d'extraction d'ADN environnemental est décrite dans Sandré et al. 2025 (doi.org/10.1002/edn3.70179). La moitié de chaque réplicat terrain est extraite et combinée pour former un réplicat technique à séquencer.
+
+L'ADN environnemental est extrait dans une salle spécialisée et décontaminée. Le personnel porte en tout temps un sarrau propre et des gants stériles. Le personnel est formé pour la décontamination et les exigences que demande le travail avec les échantillons d'ADN environnemental.
+
 ## Métagénomique en laboratoire
 
-L'analyse utilise des amroces 12S MiFish-U-F et U-R (Miya et al. 2015), avec une taille d'amplicon de 174 bp. L'approche PCR repose sur une combinaison unique de 2 barcodes de 8 bp. Aucune dilution n'est effectuée, et 3 µl d'ADN sont utilisés par réplicat de PCR. Cinq réplicats techniques sont réalisés par échantillon testé, avec 35 cycles PCR. Le séquençage est effectué sur MiSeq i100, Illumina Inc.
+L'analyse utilise les amorces 12S MiFish-U-F et U-R (Miya et al. 2015), avec une taille d'amplicon de 174 bp. L'approche PCR repose sur une combinaison unique de 2 barcodes de 8 bp. Aucune dilution n'est effectuée, et 3 µl d'ADN sont utilisés par réplicat de PCR. Cinq réplicats techniques sont réalisés par échantillon testé, avec 35 cycles PCR. Le séquençage est effectué sur MiSeq i100, Illumina Inc.
 
 ## Analyse bio-informatique
 
-Le post-traitement des données séquencés est effectué avec Barque (https://github.com/enormandeau/barque). Le pipeline Barque traite les séquences en plusieurs étapes successives. Les séquences brutes obtenues du séquenceur passent d'abord par une étape de *trimming* pour retirer les amorces et les portions de mauvaise qualité. Ensuite, les lectures 3" et 5" sont combinées (*merge*) pour reconstituer l'amplicon complet. L'étape de *split* permet de classifier les amplicons selon les marqueurs ciblés afin de conserver ceux d'une longueur supérieure à `r primer$MinAmpliconSize` et inférieure à `r primer$MaxAmpliconSize`. Les séquences chimériques, qui sont des artefacts de PCR, sont ensuite éliminées.
+Le post-traitement des données séquencés est effectué avec BARQUE (https://github.com/enormandeau/barque). Le pipeline BARQUE traite les séquences en plusieurs étapes successives. Les séquences brutes obtenues du séquenceur passent d'abord par une étape de *trimming* pour retirer les amorces et les portions de mauvaise qualité. Ensuite, les lectures 3" et 5" sont combinées (*merge*) pour reconstituer l'amplicon complet. L'étape de *split* permet de classifier les amplicons selon les marqueurs ciblés afin de conserver ceux d'une longueur supérieure à `r primer$MinAmpliconSize` et inférieure à `r primer$MaxAmpliconSize`. Les séquences chimériques, qui sont des artefacts de PCR, sont ensuite éliminées.
 
 
 ```{r}
@@ -188,7 +193,7 @@ knitr::kable(sequencing_data, format = "latex", booktabs = TRUE) |>
   kableExtra::row_spec(nrow(sequencing_data) - 1, extra_latex_after = "\\midrule")
 ```
 
- Finalement, les séquences restantes sont annotées en les assignant à une espèce présente dans la base de données contenue dans le pipeline BARQUE. Cette base de données est constituée des séquences de référence de MitoFish (Iwasaki et al. 2013), GenBank ainsi que des séquences de référence de l'Institut de biologie intégrative et des systèmes (IBIS) à Laval.  Pour obtenir une identification positive, le niveau de similarité minimale entre la séquence obtenue et celles présentes dans la base de données de référence a été fixé à `r primer$SimilSpecies * 100`%.
+ Finalement, les séquences restantes sont annotées en les assignant à une espèce présente dans la base de données contenue dans le pipeline BARQUE. Cette base de données est constituée des séquences de référence de MitoFish (Iwasaki et al. 2013), GenBank ainsi que des séquences de référence de l'Institut de biologie intégrative et des systèmes (IBIS) à Laval. Pour obtenir une identification positive, le niveau de similarité minimale entre la séquence obtenue et celles présentes dans la base de données de référence a été fixé à `r primer$SimilSpecies * 100`%.
 
 Les espèces qui n'ont pas fait l'objet d'une detection d'au moins `r config$min_hits_sample` séquences dans un échantillon et au moins `r config$min_hits_experiment` séquences sur l'ensemble des échantillons sont retirées de l'analyse afin de limiter les erreurs d'identification (Brown et al., 2015; Schnell, Bohmann, & Gilbert, 2015).
 
@@ -260,25 +265,87 @@ Les détections d'espèces sont classifiées en trois niveaux de confiance basé
 Le nombre de lectures assignées reflètent les concentrations d'ADN détectées dans l'échantillon et assignées à une espèces, mais ne sont pas directement proportionnels à l'abondance des organismes en raison des variations dans le processus d'amplification et séquencage en laboratoire, l'autoécologie des espèces et la qualité de la bases de données de références utisée.
 
 ```{r}
+# Create cache file path
+cache_dir <- file.path(params$barque_output_folder, ".cache")
+if (!dir.exists(cache_dir)) dir.create(cache_dir, recursive = TRUE)
+cache_file <- file.path(cache_dir, "species_info_cache.rds")
+
+# Check if cache exists and is newer than source file
+source_file <- file.path(params$barque_output_folder, "12s200pb_species_table.csv")
+use_cache <- file.exists(cache_file) &&
+             file.exists(source_file) &&
+             file.mtime(cache_file) > file.mtime(source_file)
+
+if (use_cache) {
+  # Load from cache
+  barque_species <- readRDS(cache_file)
+  message("Loaded species info from cache")
+} else {
+  # Process and cache
+  barque_species <- barqueReport::barque_species(source_file) |>
+    dplyr::mutate(Species = paste(Genus, Species)) |>
+    dplyr::pull(Species) |>
+    barqueReport::process_species_info()
+
+  # Save to cache
+  saveRDS(barque_species, cache_file)
+  message("Processed species info and saved to cache")
+}
+```
+
+```{r}
 #| label: species-by-sample
 #| results: asis
 
 # Function to classify detection confidence
 classify_detection <- function(reads) {
   dplyr::case_when(
-    reads > 100 ~ paste0("Confiant (", format(reads, big.mark = " "), " lectures assignées)"),
-    reads >= 10 ~ paste0("Probable (", format(reads, big.mark = " "), " lectures assignées)"),
-    TRUE ~ paste0("Incertain (", format(reads, big.mark = " "), " lectures assignées)")
+    reads > 100 ~ paste0("Confiant \\\\ ", format(reads, big.mark = " "), " lectures assignées"),
+    reads >= 10 ~ paste0("Probable \\\\ ", format(reads, big.mark = " "), " lectures assignées"),
+    TRUE ~ paste0("Incertain \\\\ ", format(reads, big.mark = " "), " lectures assignées")
   )
 }
+species_consolidated <- barque_species |>
+    dplyr::group_by(
+        species,
+        English,
+        French,
+        gbif_url,
+        col_link,
+        itis_url
+    ) |>
+    dplyr::summarise(
+        Native_Quebec = any(native == TRUE & !is.na(Quebec)),
+        Exotic_Quebec = any(exotic == TRUE & !is.na(Quebec)),
+        .groups = "drop"
+    )
 
-devtools::load_all()
-barque_species <- barqueReport::barque_species(file.path(params$barque_output_folder, "12s200pb_species_table.csv")) |> 
-  dplyr::mutate(Species = paste(Genus, Species)) |> 
-  dplyr::pull(Species) |>
-  barqueReport::process_species_info()
 
+status_qc <- read.csv(system.file("extdata/QC_especes_en_peril.csv", package = "barqueReport"))
+status_ca <- read.csv(system.file("extdata/CA_especes_en_peril.csv", package = "barqueReport"))
 
+# Join conservation status data
+# Remove duplicates from conservation status files by keeping the first occurrence
+status_ca_unique <- status_ca |>
+  dplyr::select(species = Nom.scientifique, status_ca = Statut.à.l.annexe.1) |>
+  dplyr::distinct(species, .keep_all = TRUE)
+
+status_qc_unique <- status_qc |>
+  dplyr::select(species = Nom_scientifique, status_qc = STATUT_LEMV) |>
+  dplyr::distinct(species, .keep_all = TRUE)
+
+species_consolidated <- species_consolidated |>
+    dplyr::left_join(
+        status_ca_unique,
+        by = c("species")
+    ) |>
+    dplyr::left_join(
+        status_qc_unique,
+        by = c("species")
+    ) |>
+    dplyr::mutate(
+        status_ca = ifelse(status_ca == "Aucun statut", NA, status_ca),
+        status_qc = ifelse(status_qc == "Non suivie", NA, status_qc))
 
 # Generate sections for each sample
 for (sample_id in params$samples_ids) {
@@ -290,17 +357,39 @@ for (sample_id in params$samples_ids) {
     dplyr::select(Group, Species, dplyr::all_of(sample_id)) |>
     dplyr::rename(Reads = dplyr::all_of(sample_id)) |>
     dplyr::filter(Reads > 0) |>
-    dplyr::mutate(Statut = classify_detection(Reads)) |>
+    dplyr::mutate(Détection = classify_detection(Reads)) |>
     dplyr::arrange(desc(Reads)) |>
-    dplyr::select(Group, Species, Statut)
+    dplyr::select(Group, Species, Détection) |>
+    dplyr::left_join(species_consolidated, by = c("Species" = "species")) |>
+    dplyr::mutate(
+      Espèce = paste0(
+        "\\begin{tabular}[t]{@{}l@{}}",
+        ifelse(!is.na(French), French, "Nom vernaculaire inconnu"),
+        " \\\\ \\textit{", Species, "} \\\\ ",
+        "\\href{", gbif_url, "}{Distribution} \\textbar{} \\href{", itis_url, "}{Taxonomie}",
+        "\\end{tabular}"
+      ),
+      `Statut Québec` = ifelse(!is.na(status_qc), status_qc, "-"),
+      `Statut Canada` = ifelse(!is.na(status_ca), status_ca, "-")
+    ) |>
+    dplyr::select(Group, Espèce, Détection, `Statut Québec`, `Statut Canada`)
 
   cat("### Espèces détectées\n\n")
 
   if (nrow(sample_species) > 0) {
     print(knitr::kable(
       sample_species,
-      col.names = c("Groupe", "Espèce", "Statut")
-    ))
+      col.names = c("Groupe", "Espèce", "Détection", "Statut Québec", "Statut Canada"),
+      format = "latex",
+      label = NA,
+      escape = FALSE,
+      booktabs = TRUE,
+      longtable = TRUE
+    ) |>
+      kableExtra::kable_styling(
+        latex_options = c("repeat_header"),
+        font_size = 10
+      ))
   } else {
     cat("*Aucune espèce détectée dans cet échantillon.*\n\n")
   }
@@ -329,36 +418,81 @@ for (sample_id in params$samples_ids) {
       tidyr::unnest(Species_list) |>
       dplyr::group_by(group_id) |>
       dplyr::mutate(
-        # Add group header as first row, keep Statut only for first row
-        row_num = dplyr::row_number(),
-        Statut = dplyr::if_else(row_num == 1, Statut, ""),
         # Split species into Genus Species (format: Group_Genus_species -> Genus species)
         Species = gsub("_", " ", sub("^[^_]+_", "", Species_list))
       ) |>
-      dplyr::ungroup()
+      dplyr::ungroup() |>
+      dplyr::left_join(species_consolidated, by = c("Species" = "species")) |>
+      dplyr::select(group_id, Reads, Statut, Species, French, gbif_url, itis_url, status_qc, status_ca)
 
-    # Create final table with group headers
-    result_list <- list()
-    for (gid in unique(sample_multi_expanded$group_id)) {
-      group_data <- sample_multi_expanded |> dplyr::filter(group_id == gid)
-      statut_val <- group_data$Statut[1]
-      # Add group header row
-      result_list <- c(result_list, list(data.frame(
-        Species = paste0("**Groupe ", gid, "**"),
-        Statut = statut_val
-      )))
-      # Add species rows
-      result_list <- c(result_list, list(data.frame(
-        Species = group_data$Species,
-        Statut = ""
-      )))
-    }
-    sample_multi_final <- dplyr::bind_rows(result_list)
+    # Create final table with group and species in rows
+    sample_multi_final <- sample_multi_expanded |>
+      dplyr::group_by(group_id) |>
+      dplyr::mutate(
+        n_species = dplyr::n(),
+        row_num = dplyr::row_number()
+      ) |>
+      dplyr::ungroup() |>
+      dplyr::arrange(group_id, Species) |>
+      dplyr::mutate(
+        # Use multirow for Groupe column
+        Groupe = dplyr::if_else(
+          row_num == 1,
+          paste0("\\multirow{", n_species, "}{*}{\\textbf{Groupe ", group_id, "}}"),
+          ""
+        ),
+        # Use multirow for Détection column
+        Détection = dplyr::if_else(
+          row_num == 1,
+          paste0("\\multirow{", n_species, "}{*}{", Statut, "}"),
+          ""
+        ),
+        # Format species name
+        Espèce = paste0(
+          "\\begin{tabular}[t]{@{}l@{}}",
+          ifelse(!is.na(French), French, "Nom vernaculaire inconnu"),
+          " \\\\ \\textit{", Species, "} \\\\ ",
+          "\\href{", gbif_url, "}{Distribution} \\textbar{} \\href{", itis_url, "}{Taxonomie}",
+          "\\end{tabular}"
+        ),
+        `Statut Québec` = ifelse(!is.na(status_qc), status_qc, "-"),
+        `Statut Canada` = ifelse(!is.na(status_ca), status_ca, "-")
+      ) |>
+      dplyr::select(Groupe, Détection, Espèce, `Statut Québec`, `Statut Canada`)
 
-    print(knitr::kable(
+    # Build the kable
+    tbl <- knitr::kable(
       sample_multi_final,
-      col.names = c("Espèce possible", "Statut")
-    ))
+      format = "latex",
+      label = NA,
+      escape = FALSE,
+      booktabs = FALSE,
+      longtable = TRUE,
+      align = c("l", "l", "l", "l", "l"),
+      linesep = "",  # Remove default spacing
+      vline = ""  # Remove vertical lines
+    ) |>
+      kableExtra::kable_styling(
+        latex_options = c("repeat_header"),
+        font_size = 10
+      ) |>
+      kableExtra::column_spec(1:5, border_left = FALSE, border_right = FALSE)
+
+    # Add hline after each group (after the last species in each group)
+    group_ends <- sample_multi_final |>
+      dplyr::mutate(row_idx = dplyr::row_number()) |>
+      dplyr::group_by(Groupe) |>
+      dplyr::filter(Groupe != "") |>
+      dplyr::summarise(last_row = max(row_idx)) |>
+      dplyr::pull(last_row)
+
+    for (row_idx in group_ends) {
+      if (row_idx < nrow(sample_multi_final)) {
+        tbl <- tbl |> kableExtra::row_spec(row_idx, extra_latex_after = "\\\\\\hline")
+      }
+    }
+
+    print(tbl)
   } else {
     cat("*Aucune détection ambiguë dans cet échantillon.*\n\n")
   }
@@ -385,13 +519,15 @@ De plus, nous suggérons fortement de tenir compte d’un seuil du nombre de sé
 
 # Références
 
-Berger C, Hernandez C, Laporte M, Côté G, Paradis Y, Normandeau E, Bernatchez L (2020) Fine-scale spatial structuration of fish communities within river revealed by environmental DNA metabarcoding. Environmental DNA.
+Berger C, Hernandez C, Laporte M, Côté G, Paradis Y, Normandeau E, Bernatchez L (2020) Fine-scale spatial structuration of fish communities within river revealed by environmental DNA metabarcoding. *Environmental DNA*.
 
-Brown SP, Veach AM, Rigdon-Huss AR, Grond K, Lickteig SK, Lothamer K, Oliver AK, Jumpponen A (2015) Scraping the bottom of the barrel: are rare high throughput sequences artifacts? Fungal Ecology 13:221-225.
+Brown SP, Veach AM, Rigdon-Huss AR, Grond K, Lickteig SK, Lothamer K, Oliver AK, Jumpponen A (2015) Scraping the bottom of the barrel: are rare high throughput sequences artifacts? *Fungal Ecology* 13:221-225.
 
-Iwasaki W, Fukunaga T, Isagozawa R, Yamada K, Maeda Y, Satoh TP, Sado T, Mabuchi K, Takeshima H, Miya M, Nishida M (2013) MitoFish and MitoAnnotator: A Mitochondrial Genome Database of Fish with an Accurate and Automatic Annotation Pipeline. Molecular Biology and Evolution 30(11): 2531–2540.
+Iwasaki W, Fukunaga T, Isagozawa R, Yamada K, Maeda Y, Satoh TP, Sado T, Mabuchi K, Takeshima H, Miya M, Nishida M (2013) MitoFish and MitoAnnotator: A Mitochondrial Genome Database of Fish with an Accurate and Automatic Annotation Pipeline. *Molecular Biology and Evolution* 30(11):2531–2540.
 
-Miya M, Sato Y, Fukunaga T, Sado T, Poulsen JY, Sato K, Minamoto T, Yamamoto S, Yamanaka H, Araki H, Kondoh M, Iwasaki W (2015) MiFish, a set of universal PCR primers for metabarcoding environmental DNA from fishes: detection of more than 230 subtropical marine species. R.Soc.Open sci. 2(7).
+Miya M, Sato Y, Fukunaga T, Sado T, Poulsen JY, Sato K, Minamoto T, Yamamoto S, Yamanaka H, Araki H, Kondoh M, Iwasaki W (2015) MiFish, a set of universal PCR primers for metabarcoding environmental DNA from fishes: detection of more than 230 subtropical marine species. *Royal Society Open Science* 2(7).
 
-Schnell IB, Bohmann K, Gilbert MTP (2015) Tag jumps illuminated – reducing sequence-to-sample misidentifications in metabarcoding studies. Molecular Ecology Resources. 15: 1289-1303.
+Sandré F, To TA, Couillard J, Bélisle A-C, Langlois VS (2025) Tracking Aquatic Biodiversity With Environmental DNA: A Study in Quebec's Mining Region. *Environmental DNA* 7(5):e70179. https://doi.org/10.1002/edn3.70179.
+
+Schnell IB, Bohmann K, Gilbert MTP (2015) Tag jumps illuminated – reducing sequence-to-sample misidentifications in metabarcoding studies. *Molecular Ecology Resources* 15:1289-1303.
 

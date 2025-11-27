@@ -77,9 +77,21 @@ $endif$
 % Pandoc image bounding macro (required for Quarto/Pandoc figures)
 \providecommand{\pandocbounded}[1]{#1}
 
+% Babel for French language support (must be loaded before table packages)
+\usepackage[french]{babel}
+\setlength{\parskip}{6pt}
+\setlength{\parindent}{0pt}
+
+% Ensure proper French table captions
+\addto\captionsfrench{%
+  \renewcommand{\tablename}{Tableau}%
+}
+
 % Tables
 \usepackage{longtable,booktabs,array}
 \usepackage{calc} % for calculating minipage widths
+\usepackage{makecell} % for multi-line cells
+\usepackage{multirow} % for spanning rows
 
 % Code blocks
 $if(listings)$
@@ -91,6 +103,8 @@ $endif$
 $if(highlighting-macros)$
 $highlighting-macros$
 $endif$
+
+\usepackage[sfdefault, light]{FiraSans}
 
 % Lists - Define tightlist command for Pandoc
 \providecommand{\tightlist}{%
@@ -111,6 +125,7 @@ $endif$
 % Custom cover page command
 \newcommand{\makecover}{
   \begin{titlepage}
+    \singlespacing  % Use single spacing for title page
     % Background image
     $if(cover-image)$
     \AddToShipoutPictureBG*{%
@@ -136,20 +151,20 @@ $endif$
 
       $if(client-name)$
       {\color{white} \normalsize \textbf{Pour } \par}
-      {\color{white} \normalsize $client-name$} \\
+      {\color{white} \normalsize $client-name$}
       $endif$
 
       \vspace{1.5cm}
 
       {\color{white} \normalsize \textbf{Réalisé par} \par}
       {\color{white}Laboratoire de Valérie Langlois (Prof., Ph.D.) en écotoxicogénomique,\\ ADN/ARN environnemental et perturbation endocrinienne \\ INRS, 490, Rue de la Couronne, Québec, Québec G1K 9A9\par}
-      
+
       \vspace{1cm}
 
       % Authorship sections
       $if(report-author)$
-      {\color{white}\normalsize \textbf{Extraction des échantillons et rédaction du rapport} \par}
-      {\color{white}\normalsize $report-author$ \par}
+      {\color{white}\normalsize \textbf{Extraction d'ADN des échantillons et rédaction du rapport} \par}
+      {\color{white}\normalsize $report-author$}
       \vspace{0.5cm}
       $endif$
 
@@ -168,6 +183,7 @@ $endif$
       \vspace{1cm}
     \end{center}
   \end{titlepage}
+  \onehalfspacing  % Resume 1.5 spacing after title page
   \clearpage
 }
 
@@ -181,9 +197,11 @@ $endif$
 \usepackage{titlesec}
 \definecolor{customblue}{HTML}{3a6881}
 \titleformat{\section}
-  {\normalfont\Large\bfseries\color{customblue}}{\thesection}{1em}{}
+  {\normalfont\Large\bfseries\color{customblue}}{\thesection.}{1em}{}
 \titleformat{\subsection}
-  {\normalfont\large\bfseries\color{customblue}}{\thesubsection}{1em}{}
+  {\normalfont\large\bfseries\color{customblue}}{\thesubsection.}{1em}{}
+\titleformat{\subsubsection}
+  {\normalfont\normalsize\bfseries\color{customblue}}{\thesubsubsection.}{1em}{}
 
 % Prevent orphans and widows
 \widowpenalty=10000

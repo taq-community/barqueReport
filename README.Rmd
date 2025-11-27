@@ -123,3 +123,16 @@ What does this function?
 Your barque output folder should be the `12_results` folder produce by barque.
 For Illumina quality analysis, provide the `Quality_Metrics.csv` file
 from your sequencer.
+
+
+### Conservation Status Data Sources
+
+These files should be downloaded from their respective sources and placed in `inst/extdata/`:
+
+4. **CA_especes_en_peril.csv** - Canadian species at risk
+   - Source: [Registre public des espèces en péril (LEP)](https://registre-especes.canada.ca/index-fr.html#/especes?sortBy=commonNameSort&sortDirection=asc&pageSize=10)
+   - Contains federal species at risk designations under Canada's Species at Risk Act (SARA/LEP)
+
+5. **QC_especes_en_peril.csv** - Quebec species at risk
+   - Source: [Liste de la faune vertébrée du Québec - Données Québec](https://www.donneesquebec.ca/recherche/dataset/liste-de-la-faune-vertebree-du-quebec/resource/73060a93-990c-4529-b87e-9aaf6772cd06)
+   - Contains provincial species at risk under Quebec's Loi sur les espèces menacées ou vulnérables (LEMV)
