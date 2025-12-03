@@ -40,6 +40,7 @@ fetch_natserv_info <- function(sp) {
 #' @return Data frame with enhanced species information including common names,
 #'   conservation status, and external links
 #' @export
+#' @importFrom utils read.csv
 #'
 #' @examples
 #' \dontrun{
@@ -110,7 +111,7 @@ process_species_info <- function(species_list) {
   # Join conservation status data
   # Remove duplicates from conservation status files by keeping the first occurrence
   status_ca_unique <- status_ca |>
-    dplyr::select(species = Nom.scientifique, status_ca = Statut.à.l.annexe.1) |>
+    dplyr::select(species = Nom.scientifique, status_ca = "Statut.\u00e0.l.annexe.1") |>
     dplyr::distinct(species, .keep_all = TRUE)
 
   status_qc_unique <- status_qc |>
