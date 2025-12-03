@@ -152,10 +152,14 @@ generate_metabarcoding_report <- function(
 #' @param lab_author Laboratory analysis author(s) (default: "")
 #' @param bioinfo_author Bioinformatics analysis author(s) (default: "")
 #' @param report_author Report writing author(s) (default: "")
+#' @param extraction_author DNA extraction author(s) (default: "")
 #' @param title_short Short title for headers (default: "Rapport 12S")
 #' @param client_name Client name (default: "")
 #' @param geographic_region Geographic region of sampling (default: "")
 #' @param target_species Target species description (default: "Especes aquatiques (poissons)")
+#' @param config_file Path to barque config file (optional)
+#' @param primer_file Path to primers CSV file (optional)
+#' @param citation_note Citation note for the report (optional)
 #'
 #' @return Path to the generated report file
 #' @export
@@ -188,10 +192,14 @@ generate_client_report <- function(
   lab_author = "",
   bioinfo_author = "",
   report_author = "",
+  extraction_author = "",
   title_short = "Rapport 12S",
   client_name = "",
   geographic_region = "",
-  target_species = "Esp\u00E8ces aquatiques (poissons)"
+  target_species = "Esp\u00E8ces aquatiques (poissons)",
+  config_file = NULL,
+  primer_file = NULL,
+  citation_note = NULL
 ) {
 
   # Validate inputs
@@ -223,7 +231,11 @@ generate_client_report <- function(
     geographic_region = geographic_region,
     lab_author = lab_author,
     bioinfo_author = bioinfo_author,
-    report_author = report_author
+    report_author = report_author,
+    extraction_author = extraction_author,
+    config_file = config_file,
+    primer_file = primer_file,
+    citation_note = citation_note
   )
 
   # Read the template
@@ -236,7 +248,26 @@ generate_client_report <- function(
   # Update YAML front matter
   yaml_lines <- template_content[(yaml_start + 1):(yaml_end - 1)]
 
-  # Replace title, subtitle, author if provided
+  # Helper function to update YAML param line
+  update_yaml_param <- function(yaml_lines, param_name, value) {
+    param_pattern <- paste0("^\\s*", param_name, ":")
+    param_line <- grep(param_pattern, yaml_lines)
+    if (length(param_line) > 0) {
+      if (is.null(value)) {
+        yaml_lines[param_line] <- paste0("  ", param_name, ": NULL")
+      } else if (is.character(value) && length(value) == 1) {
+        yaml_lines[param_line] <- paste0("  ", param_name, ': "', value, '"')
+      } else if (is.character(value) && length(value) > 1) {
+        # For character vectors, format as YAML array
+        yaml_lines[param_line] <- paste0("  ", param_name, ': ["', paste(value, collapse = '", "'), '"]')
+      } else {
+        yaml_lines[param_line] <- paste0("  ", param_name, ": ", value)
+      }
+    }
+    return(yaml_lines)
+  }
+
+  # Replace title and subtitle
   title_line <- grep("^title:", yaml_lines)
   if (length(title_line) > 0 && title != "") {
     yaml_lines[title_line] <- paste0('title: "', title, '"')
@@ -247,8 +278,19 @@ generate_client_report <- function(
     yaml_lines[subtitle_line] <- paste0('subtitle: "', subtitle, '"')
   }
 
-  # Note: author field is not modified for client reports as it uses
-  # nested author structure (params$author$lab, etc.)
+  # Update all params
+  yaml_lines <- update_yaml_param(yaml_lines, "barque_output_folder", barque_output_folder)
+  yaml_lines <- update_yaml_param(yaml_lines, "samples_ids", samples_ids)
+  yaml_lines <- update_yaml_param(yaml_lines, "config_file", config_file)
+  yaml_lines <- update_yaml_param(yaml_lines, "primer_file", primer_file)
+  yaml_lines <- update_yaml_param(yaml_lines, "title_short", title_short)
+  yaml_lines <- update_yaml_param(yaml_lines, "client_name", client_name)
+  yaml_lines <- update_yaml_param(yaml_lines, "geographic_region", geographic_region)
+  yaml_lines <- update_yaml_param(yaml_lines, "lab_author", lab_author)
+  yaml_lines <- update_yaml_param(yaml_lines, "bioinfo_author", bioinfo_author)
+  yaml_lines <- update_yaml_param(yaml_lines, "report_author", report_author)
+  yaml_lines <- update_yaml_param(yaml_lines, "extraction_author", extraction_author)
+  yaml_lines <- update_yaml_param(yaml_lines, "citation_note", citation_note)
 
   # Create timestamped QMD file
   timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")

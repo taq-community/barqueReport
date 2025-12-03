@@ -14,10 +14,14 @@ generate_client_report(
   lab_author = "",
   bioinfo_author = "",
   report_author = "",
+  extraction_author = "",
   title_short = "Rapport 12S",
   client_name = "",
   geographic_region = "",
-  target_species = "Espèces aquatiques (poissons)"
+  target_species = "Espèces aquatiques (poissons)",
+  config_file = NULL,
+  primer_file = NULL,
+  citation_note = NULL
 )
 }
 \arguments{
@@ -39,6 +43,8 @@ generate_client_report(
 
 \item{report_author}{Report writing author(s) (default: "")}
 
+\item{extraction_author}{DNA extraction author(s) (default: "")}
+
 \item{title_short}{Short title for headers (default: "Rapport 12S")}
 
 \item{client_name}{Client name (default: "")}
@@ -46,6 +52,12 @@ generate_client_report(
 \item{geographic_region}{Geographic region of sampling (default: "")}
 
 \item{target_species}{Target species description (default: "Especes aquatiques (poissons)")}
+
+\item{config_file}{Path to barque config file (optional)}
+
+\item{primer_file}{Path to primers CSV file (optional)}
+
+\item{citation_note}{Citation note for the report (optional)}
 }
 \value{
 Path to the generated report file

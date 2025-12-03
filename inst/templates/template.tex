@@ -141,7 +141,7 @@ $endif$
 
     \begin{center}
       % Title in white
-      {\color{white}\large \bfseries $title$ \par}
+      {\color{white}\LARGE \bfseries $title$ \par}
       % Subtitle in white
       $if(subtitle)$
       {\color{white}\LARGE $subtitle$ \par}
@@ -162,11 +162,12 @@ $endif$
       \vspace{1cm}
 
       % Authorship sections
-      $if(report-author)$
-      {\color{white}\normalsize \textbf{Extraction d'ADN des échantillons et rédaction du rapport} \par}
-      {\color{white}\normalsize $report-author$}
+      $if(extraction-author)$
+      {\color{white}\normalsize \textbf{Extraction d'ADN des échantillons} \par}
+      {\color{white}\normalsize $extraction-author$}
       \vspace{0.5cm}
       $endif$
+
 
       $if(lab-author)$
       {\color{white}\normalsize \textbf{Analyse métagénomique en laboratoire} \par}
@@ -177,6 +178,12 @@ $endif$
       $if(bioinfo-author)$
       {\color{white}\normalsize \textbf{Analyses bio-informatiques} \par}
       {\color{white}\normalsize $bioinfo-author$ \par}
+      \vspace{0.5cm}
+      $endif$
+
+      $if(report-author)$
+      {\color{white}\normalsize \textbf{Rédaction du rapport} \par}
+      {\color{white}\normalsize $report-author$}
       \vspace{0.5cm}
       $endif$
 
@@ -220,6 +227,19 @@ $endfor$
 
 % Custom cover page
 \makecover
+
+$if(citation-note)$
+% Citation page
+\thispagestyle{empty}
+\vspace*{\fill}
+\noindent\rule{\textwidth}{0.4pt}
+\vspace{0.1cm}
+
+\noindent\textbf{Comment citer ce rapport}
+
+\noindent $citation-note$
+\clearpage
+$endif$
 
 % Table of contents
 $if(toc)$
