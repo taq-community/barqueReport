@@ -16,10 +16,14 @@ generate_client_report(
   lab_author = "",
   bioinfo_author = "",
   report_author = "",
+  extraction_author = "",
   title_short = "Rapport 12S",
   client_name = "",
   geographic_region = "",
-  target_species = "Espèces aquatiques (poissons)"
+  target_species = "Espèces aquatiques (poissons)",
+  config_file = NULL,
+  primer_file = NULL,
+  citation_note = NULL
 )
 ```
 
@@ -61,6 +65,10 @@ generate_client_report(
 
   Report writing author(s) (default: "")
 
+- extraction_author:
+
+  DNA extraction author(s) (default: "")
+
 - title_short:
 
   Short title for headers (default: "Rapport 12S")
@@ -76,6 +84,18 @@ generate_client_report(
 - target_species:
 
   Target species description (default: "Especes aquatiques (poissons)")
+
+- config_file:
+
+  Path to barque config file (optional)
+
+- primer_file:
+
+  Path to primers CSV file (optional)
+
+- citation_note:
+
+  Citation note for the report (optional)
 
 ## Value
 
