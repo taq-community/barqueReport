@@ -139,8 +139,6 @@ placed in `inst/extdata/`:
   Information for Species
 - [`generate_client_report()`](generate_client_report.md) : Generate
   Client Report (PDF)
-- [`generate_metabarcoding_report()`](generate_metabarcoding_report.md)
-  : Generate Metabarcoding Report
 - [`illumina_summary_stats()`](illumina_summary_stats.md) : Calculate
   Illumina Summary Statistics
 - [`load_barque_data()`](load_barque_data.md) : Load and Process Barque
