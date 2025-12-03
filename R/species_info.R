@@ -63,13 +63,19 @@ process_species_info <- function(species_list) {
     dplyr::mutate(commonName = stringr::str_replace_all(commonName, "queue \u00E0 tache noire", "queue \u00E0 t\u00E2che noire")) |>
     dplyr::distinct() |>
     dplyr::mutate(commonName = stringr::str_to_sentence(commonName)) |>
-    tidyr::pivot_wider(names_from = "language", values_from = "commonName", values_fn = \(x) paste(x, collapse = "; "))
+    tidyr::pivot_wider(names_from = "language", values_from = "commonName", values_fn = \(x) paste(x, collapse = "; ")) |>
+    dplyr::mutate(
+      itis_url = paste0(
+        "https://www.itis.gov/servlet/SingleRpt/SingleRpt?search_topic=Scientific_Name&search_value=",
+        gsub(" ", "+", species)
+      )
+    )
   
   # Get Catalogue of Life informations
   col_infos <- taxize::gna_verifier(names = species_list, data_sources = 1) |>
-    dplyr::mutate(col_link = paste0("https://www.catalogueoflife.org/data/taxon/", currentRecordId)) |>
-    dplyr::select(species = submittedName, col_link)
-  
+    dplyr::mutate(col_url = paste0("https://www.catalogueoflife.org/data/taxon/", currentRecordId)) |>
+    dplyr::select(species = submittedName, col_url)
+
   # Get GBIF informations
   gbif_infos <- data.frame(
     species = species_list, 
@@ -81,18 +87,49 @@ process_species_info <- function(species_list) {
     dplyr::left_join(itis_common_names, by = "species") |>
     dplyr::left_join(natserv_infos, by = "species") |>
     dplyr::left_join(gbif_infos, by = "species") |>
-    dplyr::left_join(col_infos, by = "species") |>
-    dplyr::mutate(
-      itis_url = paste0("https://www.itis.gov/servlet/SingleRpt/SingleRpt?search_topic=TSN&search_value=", tsn),
-      display_name = ifelse(!is.na(French), French, "Nom vernaculaire inconnu"),
-      species_formatted = paste0(
-        display_name,
-        " <br><small><em>", species, "</em></small>",
-        ifelse(!is.na(gbif_url), paste0(" <a href='", gbif_url, "' target='_blank' title='GBIF'>[GBIF]</a>"), ""),
-        ifelse(!is.na(col_link), paste0(" <a href='", col_link, "' target='_blank' title='Catalogue of Life'>[CoL]</a>"), ""),
-        ifelse(!is.na(itis_url), paste0(" <a href='", itis_url, "' target='_blank' title='ITIS'>[ITIS]</a>"), "")
-      )
+    dplyr::left_join(col_infos, by = "species") 
+
+  final_species_df <- final_species_df |>
+    dplyr::group_by(
+      species,
+      English,
+      French,
+      gbif_url,
+      col_url,
+      itis_url
+    ) |>
+    dplyr::summarise(
+      Native_Quebec = any(native == TRUE & !is.na(Quebec)),
+      Exotic_Quebec = any(exotic == TRUE & !is.na(Quebec)),
+      .groups = "drop"
     )
-  
+
+  status_qc <- read.csv(system.file("extdata/QC_especes_en_peril.csv", package = "barqueReport"))
+  status_ca <- read.csv(system.file("extdata/CA_especes_en_peril.csv", package = "barqueReport"))
+
+  # Join conservation status data
+  # Remove duplicates from conservation status files by keeping the first occurrence
+  status_ca_unique <- status_ca |>
+    dplyr::select(species = Nom.scientifique, status_ca = Statut.à.l.annexe.1) |>
+    dplyr::distinct(species, .keep_all = TRUE)
+
+  status_qc_unique <- status_qc |>
+    dplyr::select(species = Nom_scientifique, status_qc = STATUT_LEMV) |>
+    dplyr::distinct(species, .keep_all = TRUE)
+
+  final_species_df <- final_species_df |>
+    dplyr::left_join(
+      status_ca_unique,
+      by = c("species")
+    ) |>
+    dplyr::left_join(
+      status_qc_unique,
+      by = c("species")
+    ) |>
+    dplyr::mutate(
+      status_ca = ifelse(status_ca == "Aucun statut", NA, status_ca),
+      status_qc = ifelse(status_qc == "Non suivie", NA, status_qc)
+    )
+
   return(final_species_df)
 }
