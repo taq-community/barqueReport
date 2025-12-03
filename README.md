@@ -25,34 +25,6 @@ remotes::install_github("taq-community/barqueReport")
 
 ## Quick Start
 
-### Generate a Comprehensive Metabarcoding Report (HTML)
-
-Generate an interactive HTML report with detailed analysis and
-visualizations:
-
-``` r
-library(barqueReport)
-
-# Interactive file selection (recommended for beginners)
-generate_metabarcoding_report(
-  barque_output_folder = choose.dir(),  # Select barque output folder
-  samples_ids = c("ST1", "ST2", "ST3", "ST4"),
-  title = "Lake Superior Study",
-  subtitle = "",
-  author = "Steve Vissault, Julie Couillard & Tuan Ahn To",
-  illumina_quality_file = file.choose(),  # Select Quality_Metrics.csv file
-  blank_lab = "LAB_BLANK",
-  blank_field = "FIELD_BLANK"
-)
-
-# Alternative: specify paths directly
-generate_metabarcoding_report(
-  barque_output_folder = "/path/to/barque/output",
-  samples_ids = c("ST1", "ST2", "ST3", "ST4"),
-  illumina_quality_file = "/path/to/Quality_Metrics.csv"
-)
-```
-
 ### Generate a Client Report (PDF)
 
 Generate a professional PDF document with custom cover page focused on
